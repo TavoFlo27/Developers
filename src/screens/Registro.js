@@ -9,7 +9,8 @@ import {
   ScrollView,
 } from "react-native";
 import { TextInput, Button } from "react-native-paper";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { db } from "../firebaseConfig"; // Asegúrate de que la ruta sea correcta
+import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
 
 export default function Registro({ navigation }) {
   const [nombre, setNombre] = useState("");
@@ -33,30 +34,28 @@ export default function Registro({ navigation }) {
       Alert.alert("Error", "Las contraseñas no coinciden");
     } else {
       try {
-        const storedUsers = await AsyncStorage.getItem("usuarios");
-        const users = storedUsers ? JSON.parse(storedUsers) : [];
+        const usuariosRef = collection(db, "usuarios");
+        const q = query(usuariosRef, where("usuario", "==", usuario));
+        const querySnapshot = await getDocs(q);
 
-        const usuarioExistente = users.find((u) => u.usuario === usuario);
-        if (usuarioExistente) {
+        if (!querySnapshot.empty) {
           Alert.alert("Error", "El nombre de usuario ya está en uso");
           return;
         }
 
-        const userData = {
+        await addDoc(usuariosRef, {
           nombre,
           usuario,
           telefono,
           domicilio,
           contrasena,
-          tipoUsuario: "Cliente", 
-        };
-
-        users.push(userData);
-        await AsyncStorage.setItem("usuarios", JSON.stringify(users));
+          tipoUsuario: "Cliente",
+        });
 
         Alert.alert("Registro exitoso", "¡Cuenta creada correctamente!");
         navigation.navigate("InicioSesion");
       } catch (error) {
+        console.error("Error al registrar usuario:", error);
         Alert.alert("Error", "Hubo un problema al guardar los datos");
       }
     }

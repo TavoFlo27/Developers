@@ -8,7 +8,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { TextInput, Button } from "react-native-paper";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../firebaseConfig"; // Asegúrate que esta ruta es correcta
 
 export default function InicioSesion({ navigation }) {
   const [usuario, setUsuario] = useState("");
@@ -16,28 +17,30 @@ export default function InicioSesion({ navigation }) {
 
   const handleLogin = async () => {
     try {
-      // Verificación para el cajero (usuario fijo)
+      // Verificación para el cajero fijo
       if (usuario === "ADMINISTRADOR" && contrasena === "PASSWORD") {
         Alert.alert("Acceso concedido", "Bienvenido, Cajero");
         navigation.navigate("MenuPizzas");
         return;
       }
 
-      // Verificación de usuarios registrados (clientes)
-      const storedUsers = await AsyncStorage.getItem("usuarios");
-      const users = storedUsers ? JSON.parse(storedUsers) : [];
-
-      const userFound = users.find(
-        (u) => u.usuario === usuario && u.contrasena === contrasena
+      // Verificación de usuario en Firebase Firestore
+      const usuariosRef = collection(db, "usuarios");
+      const q = query(
+        usuariosRef,
+        where("usuario", "==", usuario),
+        where("contrasena", "==", contrasena)
       );
+      const querySnapshot = await getDocs(q);
 
-      if (userFound) {
+      if (!querySnapshot.empty) {
         Alert.alert("¡Bienvenido!");
         navigation.navigate("MenuPizzas");
       } else {
         Alert.alert("Error", "Usuario o contraseña incorrectos");
       }
     } catch (error) {
+      console.error("Error al iniciar sesión:", error);
       Alert.alert("Error", "Hubo un problema al verificar los datos");
     }
   };
@@ -146,11 +149,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#cce6ff",
     paddingVertical: 5,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 30,
     marginTop: 15,
     fontWeight: "bold",
     textAlign: "center",
     fontSize: 20,
-    borderRadius: 30,
   },
 });
