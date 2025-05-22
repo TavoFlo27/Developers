@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -6,40 +6,70 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Button } from 'react-native-paper';
+  ScrollView,
+} from "react-native";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { Button } from "react-native-paper";
 
 export default function PizzaSeleccionada({ route, navigation }) {
-  const { pizza, tamano = "Familiar", ingredientes = [], precioTotal = 130.00 } = route.params;
+  const { carrito = [], nuevaPizza } = route.params || {};
 
-  const handleModificar = () => {
-    navigation.goBack();
-  };
+  const [carritoActualizado, setCarritoActualizado] = React.useState(() => {
+    if (nuevaPizza) {
+      return [...carrito, nuevaPizza];
+    }
+    return carrito;
+  });
+
+  const pizzaActual = carritoActualizado[carritoActualizado.length - 1];
 
   const handlePagar = () => {
-    navigation.navigate('Pago', {
-      pizza,
-      tamano,
-      ingredientes,
-      precioTotal,
+    navigation.navigate("Pago", {
+      carrito: carritoActualizado,
     });
   };
 
   const handlePersonalizar = () => {
-    navigation.navigate('PersonalizacionPizza', {
-      pizza,
-      tamano,
-      ingredientes,
-      precioBase: parseFloat(pizza.precio.replace("$", "")),
+    if (!pizzaActual) return;
+    navigation.navigate("PersonalizacionPizza", {
+      pizza: pizzaActual.pizza,
+      tamano: pizzaActual.tamano,
+      ingredientes: pizzaActual.ingredientes,
+      precioBase: parseFloat(pizzaActual.pizza.precio.replace("$", "")),
+      carrito: carritoActualizado,
     });
   };
 
+  const handleAgregarOtra = () => {
+    navigation.navigate("MenuPizzas", {
+      carrito: carritoActualizado,
+    });
+  };
+
+  const handleEliminarPizza = (index) => {
+    const nuevoCarrito = carritoActualizado.filter((_, i) => i !== index);
+    setCarritoActualizado(nuevoCarrito);
+
+    if (nuevoCarrito.length === 0) {
+      navigation.navigate("MenuPizzas", { carrito: [] });
+    }
+  };
+
+  if (carritoActualizado.length === 0) {
+    return (
+      <SafeAreaView style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No hay pizzas seleccionadas.</Text>
+        <Button mode="contained" onPress={() => navigation.navigate("MenuPizzas")}>
+          Agregar Pizza
+        </Button>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      {/* Barra superior */}
       <View style={styles.headerBar}>
-        <TouchableOpacity onPress={() => navigation.navigate("MenuPizzas")}>
+        <TouchableOpacity onPress={handleAgregarOtra}>
           <Icon name="menu" size={50} color="#000" />
         </TouchableOpacity>
 
@@ -53,33 +83,60 @@ export default function PizzaSeleccionada({ route, navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Contenido principal */}
-      <View style={styles.container}>
-        <Image source={pizza.imagen} style={styles.imagen} />
-        <Text style={styles.nombre}>{pizza.nombre}</Text>
-        <Text style={styles.detalle}>Tamaño: {tamano}</Text>
-        <Text style={styles.detalle}>Ingredientes adicionales:</Text>
+      <View style={styles.seleccionadaBar}>
+        <TouchableOpacity onPress={handleAgregarOtra}>
+          <Icon name="cart-plus" size={30} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.pizzaSeleccionadaTexto}>PIZZAS SELECCIONADAS</Text>
+      </View>
 
-        {ingredientes.length > 0 ? (
-          ingredientes.map((item, index) => (
-            <Text key={index} style={styles.ingrediente}>- {item.nombre}</Text>
-          ))
-        ) : (
-          <Text style={styles.ingrediente}>Sin ingredientes adicionales</Text>
-        )}
+      <ScrollView style={styles.listaPizzas}>
+        {carritoActualizado.map((pizzaItem, index) => (
+          <View key={index} style={styles.pizzaItem}>
+            <Image source={pizzaItem.pizza.imagen} style={styles.pizzaImage} />
+            <View style={styles.pizzaInfo}>
+              <View style={styles.pizzaTop}>
+                <Text style={styles.nombre}>{pizzaItem.pizza.nombre}</Text>
+                <TouchableOpacity onPress={() => handleEliminarPizza(index)}>
+                  <Icon name="cart-minus" size={28} color="black" />
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.detalle}>Tamaño: {pizzaItem.tamano}</Text>
+              <Text style={styles.detalle}>Ingredientes adicionales:</Text>
+              {pizzaItem.ingredientes.length > 0 ? (
+                pizzaItem.ingredientes.map((item, i) => (
+                  <Text key={i} style={styles.ingrediente}>
+                    - {item.nombre}
+                  </Text>
+                ))
+              ) : (
+                <Text style={styles.ingrediente}>Sin ingredientes adicionales</Text>
+              )}
+              <Text style={styles.precio}>Total: ${pizzaItem.precioTotal.toFixed(2)}</Text>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
 
-        <Text style={styles.precio}>Total: ${precioTotal.toFixed(2)}</Text>
-
-        <Button mode="contained" style={styles.botonPersonalizar} onPress={handlePersonalizar}>
-          Personalizar Pizza
+      <View style={styles.botonesContainer}>
+        <Button
+          mode="contained"
+          style={[styles.boton, { backgroundColor: "#FFD700" }]}
+          onPress={handlePersonalizar}
+          disabled={!pizzaActual}
+          labelStyle={styles.botonLabelNegro}
+        >
+          PERSONALIZAR PIZZA
         </Button>
 
-        <Button mode="contained" style={styles.botonPagar} onPress={handlePagar}>
-          Proceder al pago
-        </Button>
-
-        <Button mode="contained" style={styles.botonModificar} onPress={handleModificar}>
-          Modificar
+        <Button
+          mode="contained"
+          style={[styles.boton, { backgroundColor: "#4CAF50" }]}
+          onPress={handlePagar}
+          disabled={carritoActualizado.length === 0}
+          labelStyle={styles.botonLabelNegro}
+        >
+          MÉTODO DE PAGO
         </Button>
       </View>
     </SafeAreaView>
@@ -101,48 +158,93 @@ const styles = StyleSheet.create({
     height: 150,
     resizeMode: "contain",
   },
-  container: {
-    padding: 20,
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    flex: 1,
+  seleccionadaBar: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
   },
-  imagen: {
-    width: 200,
-    height: 200,
-    borderRadius: 10,
+  pizzaSeleccionadaTexto: {
+    fontSize: 30,
+    fontFamily: "OpenSans",
+    fontWeight: "bold",
+    marginLeft: 10,
+    color: "#000",
+  },
+  listaPizzas: {
+    maxHeight: 400,
     marginBottom: 10,
+  },
+  pizzaItem: {
+    flexDirection: "row",
+    backgroundColor: "#f2f2f2",
+    borderRadius: 10,
+    padding: 10,
+    marginHorizontal: 10,
+    marginBottom: 10,
+  },
+  pizzaImage: {
+    width: 170,
+    height: 170,
+    borderRadius: 17,
+  },
+  pizzaInfo: {
+    flex: 1,
+    marginLeft: 10,
+    justifyContent: "center",
+  },
+  pizzaTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   nombre: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 25,
+    fontFamily: "OpenSans",
+    color: "#000",
   },
   detalle: {
-    fontSize: 16,
-    marginTop: 10,
+    fontSize: 18,
+    marginTop: 4,
   },
   ingrediente: {
-    fontSize: 14,
-    color: '#555',
+    fontSize: 16,
+    marginLeft: 10,
   },
   precio: {
-    fontSize: 18,
-    color: 'green',
-    fontWeight: 'bold',
-    marginVertical: 20,
+    fontSize: 25,
+    color: "green",
+    fontWeight: "bold",
+    marginTop: 10,
   },
-  botonPersonalizar: {
-    backgroundColor: '#FFD700',
-    marginBottom: 10,
-    width: '100%',
+  botonesContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderColor: "#ccc",
+    alignItems: "center",
+    gap: 12,
   },
-  botonPagar: {
-    backgroundColor: 'green',
-    marginBottom: 10,
-    width: '100%',
+  boton: {
+    alignSelf: "center",
+    paddingHorizontal: 30,
+    paddingVertical: 8,
+    borderRadius: 30, 
   },
-  botonModificar: {
-    backgroundColor: 'orange',
-    width: '100%',
+  botonLabelNegro: {
+    color: "#000",
+    fontSize: 25,
+    fontWeight: "bold",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 20,
+    marginBottom: 20,
+    textAlign: "center",
   },
 });

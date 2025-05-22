@@ -41,37 +41,28 @@ const pizzas = [
   },
 ];
 
-export default function MenuPizzas({ navigation }) {
-  const renderItem = ({ item }) => (
-    <View style={styles.pizzaItem}>
-      <Image source={item.imagen} style={styles.pizzaImage} />
-      <View style={styles.pizzaInfo}>
-        <View style={styles.pizzaTop}>
-          <Text style={styles.nombre}>{item.nombre}</Text>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("PizzaSeleccionada", {
-                pizza: item,
-                tamano: "Familiar",
-                ingredientes: [],
-                precioTotal: parseFloat(item.precio.replace("$", "")),
-              })
-            }
-          >
-            <Icon name="cart-plus" size={28} color="#333" />
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.ingredientes}>{item.ingredientes}</Text>
-        <Text style={styles.precio}>{item.precio}</Text>
-      </View>
-    </View>
-  );
+export default function MenuPizzas({ route, navigation }) {
+  const [carrito, setCarrito] = React.useState(route.params?.carrito || []);
+
+  const seleccionarPizza = (item) => {
+    navigation.navigate("PizzaSeleccionada", {
+      carrito,
+      nuevaPizza: {
+        pizza: item,
+        tamano: "Familiar",
+        ingredientes: [],
+        precioTotal: parseFloat(item.precio.replace("$", "")),
+      },
+    });
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <View style={styles.container}>
         <View style={styles.headerBar}>
-          <TouchableOpacity onPress={() => navigation.navigate("PizzaSeleccionada")}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("PizzaSeleccionada", { carrito })}
+          >
             <Icon name="menu" size={50} color="#000" />
           </TouchableOpacity>
 
@@ -94,7 +85,21 @@ export default function MenuPizzas({ navigation }) {
         <FlatList
           data={pizzas}
           keyExtractor={(item) => item.id}
-          renderItem={renderItem}
+          renderItem={({ item }) => (
+            <View style={styles.pizzaItem}>
+              <Image source={item.imagen} style={styles.pizzaImage} />
+              <View style={styles.pizzaInfo}>
+                <View style={styles.pizzaTop}>
+                  <Text style={styles.nombre}>{item.nombre}</Text>
+                  <TouchableOpacity onPress={() => seleccionarPizza(item)}>
+                    <Icon name="cart-plus" size={28} color="#333" />
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.ingredientes}>{item.ingredientes}</Text>
+                <Text style={styles.precio}>{item.precio}</Text>
+              </View>
+            </View>
+          )}
           contentContainerStyle={styles.lista}
         />
       </View>
