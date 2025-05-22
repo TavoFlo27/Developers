@@ -61,7 +61,9 @@ export default function MenuPizzas({ route, navigation }) {
       <View style={styles.container}>
         <View style={styles.headerBar}>
           <TouchableOpacity
-            onPress={() => navigation.navigate("PizzaSeleccionada", { carrito })}
+            onPress={() =>
+              navigation.navigate("PizzaSeleccionada", { carrito })
+            }
           >
             <Icon name="menu" size={50} color="#000" />
           </TouchableOpacity>

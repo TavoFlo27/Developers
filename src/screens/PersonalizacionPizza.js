@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Image, ScrollView, Alert } from "react-native";
-import { RadioButton, Checkbox, Button, Appbar } from "react-native-paper";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  ScrollView,
+  Alert,
+  TouchableOpacity,
+  StatusBar,
+  SafeAreaView,
+} from "react-native";
+import { RadioButton, Checkbox, Button } from "react-native-paper";
+import { Ionicons } from "@expo/vector-icons";
 
 const ingredientesDisponibles = [
   { nombre: "Extra queso", precio: 10 },
@@ -51,19 +62,32 @@ export default function PersonalizacionPizza({ route, navigation }) {
       return;
     }
     Alert.alert("Pizza agregada", `Total: $${precioTotal.toFixed(2)}`);
-    // Aquí puedes navegar a la pantalla de revisión o carrito
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <Appbar.Header>
-        <Appbar.Content title="Pizza Developer’s Ing" />
-        <Appbar.Action icon="bell" onPress={() => {}} />
-      </Appbar.Header>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <StatusBar backgroundColor="#fff" barStyle="dark-content" />
+
+      {}
+      <View style={styles.topBar}>
+        <TouchableOpacity onPress={() => navigation.openDrawer()}>
+          <Ionicons name="menu" size={50} color="black" />
+        </TouchableOpacity>
+        <Image
+          source={require("../assets/pizza_icon.png")}
+          style={styles.logo}
+        />
+        <TouchableOpacity onPress={() => {}}>
+          <Ionicons name="notifications" size={50} color="black" />
+        </TouchableOpacity>
+      </View>
 
       <ScrollView contentContainerStyle={styles.container}>
-        <Image source={pizza.imagen} style={styles.imagen} />
-        <Text style={styles.titulo}>{pizza.nombre}</Text>
+        <Text style={styles.titulo}>PERSONALIZA TU PIZZA</Text>
+
+        {}
+        <Image source={pizza.imagen} style={styles.imagenPizza} />
+        <Text style={styles.nombrePizza}>{pizza.nombre}</Text>
 
         <Text style={styles.subtitulo}>Selecciona el tamaño:</Text>
         <RadioButton.Group onValueChange={setTamano} value={tamano}>
@@ -98,43 +122,70 @@ export default function PersonalizacionPizza({ route, navigation }) {
           Precio total: ${precioTotal.toFixed(2)}
         </Text>
 
-        <Button mode="contained" style={styles.boton} onPress={handleAgregar}>
+        <Button
+          mode="contained"
+          style={styles.boton}
+          labelStyle={{ color: "#000", fontWeight: "bold" }}
+          onPress={handleAgregar}
+        >
           Agregar al carrito
         </Button>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    height: 60,
+    backgroundColor: "#fff",
+    elevation: 4,
+  },
+  logo: {
+    height: 150,
+    width: 150,
+    resizeMode: "contain",
+  },
   container: {
     padding: 15,
     backgroundColor: "#fff",
     alignItems: "center",
   },
-  imagen: {
+  titulo: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  imagenPizza: {
     width: 200,
     height: 200,
     borderRadius: 10,
     marginBottom: 10,
   },
-  titulo: {
+  nombrePizza: {
     fontSize: 20,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 15,
   },
   subtitulo: {
     fontSize: 16,
-    marginTop: 15,
+    marginTop: 10,
     marginBottom: 5,
+    alignSelf: "flex-start",
   },
   radioItem: {
     flexDirection: "row",
     alignItems: "center",
+    alignSelf: "flex-start",
   },
   checkboxItem: {
     flexDirection: "row",
     alignItems: "center",
+    alignSelf: "flex-start",
   },
   total: {
     marginTop: 20,
@@ -144,6 +195,9 @@ const styles = StyleSheet.create({
   },
   boton: {
     marginTop: 20,
-    backgroundColor: "green",
+    backgroundColor: "yellow",
+    borderRadius: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 20,
   },
 });
