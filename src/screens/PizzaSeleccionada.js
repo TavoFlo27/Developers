@@ -1,3 +1,4 @@
+// PizzaSeleccionada.js
 import React from "react";
 import {
   View,
@@ -13,43 +14,31 @@ import { Button } from "react-native-paper";
 
 export default function PizzaSeleccionada({ route, navigation }) {
   const { carrito = [], nuevaPizza } = route.params || {};
-
   const [carritoActualizado, setCarritoActualizado] = React.useState(() => {
-    if (nuevaPizza) {
-      return [...carrito, nuevaPizza];
-    }
+    if (nuevaPizza) return [...carrito, nuevaPizza];
     return carrito;
   });
 
-  const pizzaActual = carritoActualizado[carritoActualizado.length - 1];
+  // Actualizar pizza personalizada
+  React.useEffect(() => {
+    if (route.params?.pizzaPersonalizada && typeof route.params.index === "number") {
+      const nuevoCarrito = [...carritoActualizado];
+      nuevoCarrito[route.params.index] = route.params.pizzaPersonalizada;
+      setCarritoActualizado(nuevoCarrito);
+    }
+  }, [route.params?.pizzaPersonalizada]);
 
   const handlePagar = () => {
-    navigation.navigate("Pago", {
-      carrito: carritoActualizado,
-    });
-  };
-
-  const handlePersonalizar = () => {
-    if (!pizzaActual) return;
-    navigation.navigate("PersonalizacionPizza", {
-      pizza: pizzaActual.pizza,
-      tamano: pizzaActual.tamano,
-      ingredientes: pizzaActual.ingredientes,
-      precioBase: parseFloat(pizzaActual.pizza.precio.replace("$", "")),
-      carrito: carritoActualizado,
-    });
+    navigation.navigate("Pago", { carrito: carritoActualizado });
   };
 
   const handleAgregarOtra = () => {
-    navigation.navigate("MenuPizzas", {
-      carrito: carritoActualizado,
-    });
+    navigation.navigate("MenuPizzas", { carrito: carritoActualizado });
   };
 
   const handleEliminarPizza = (index) => {
     const nuevoCarrito = carritoActualizado.filter((_, i) => i !== index);
     setCarritoActualizado(nuevoCarrito);
-
     if (nuevoCarrito.length === 0) {
       navigation.navigate("MenuPizzas", { carrito: [] });
     }
@@ -72,12 +61,7 @@ export default function PizzaSeleccionada({ route, navigation }) {
         <TouchableOpacity onPress={handleAgregarOtra}>
           <Icon name="menu" size={50} color="#000" />
         </TouchableOpacity>
-
-        <Image
-          source={require("../assets/pizza_icon.png")}
-          style={styles.logoGrande}
-        />
-
+        <Image source={require("../assets/pizza_icon.png")} style={styles.logoGrande} />
         <TouchableOpacity onPress={() => alert("Notificaciones")}>
           <Icon name="bell" size={50} color="#000" />
         </TouchableOpacity>
@@ -103,7 +87,6 @@ export default function PizzaSeleccionada({ route, navigation }) {
               </View>
 
               <Text style={styles.detalle}>Tamaño: {pizzaItem.tamano}</Text>
-
               <Text style={styles.detalle}>Ingredientes:</Text>
               <Text style={styles.ingrediente}>- {pizzaItem.pizza.ingredientes}</Text>
 
@@ -119,22 +102,28 @@ export default function PizzaSeleccionada({ route, navigation }) {
               )}
 
               <Text style={styles.precio}>Total: ${pizzaItem.precioTotal.toFixed(2)}</Text>
+
+              <Button
+                mode="contained"
+                style={[styles.botonPersonalizar, { backgroundColor: "#FF9800" }]}
+                labelStyle={styles.botonLabelNegro}
+                onPress={() =>
+                  navigation.navigate("PersonalizacionPizza", {
+                    pizza: pizzaItem.pizza,
+                    tamano: pizzaItem.tamano,
+                    ingredientes: pizzaItem.ingredientes,
+                    index: index,
+                  })
+                }
+              >
+                ✏
+              </Button>
             </View>
           </View>
         ))}
       </ScrollView>
 
       <View style={styles.botonesContainer}>
-        <Button
-          mode="contained"
-          style={[styles.boton, { backgroundColor: "#FFD700" }]}
-          onPress={handlePersonalizar}
-          disabled={!pizzaActual}
-          labelStyle={styles.botonLabelNegro}
-        >
-          PERSONALIZAR PIZZA
-        </Button>
-
         <Button
           mode="contained"
           style={[styles.boton, { backgroundColor: "#4CAF50" }]}
@@ -148,6 +137,7 @@ export default function PizzaSeleccionada({ route, navigation }) {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   headerBar: {

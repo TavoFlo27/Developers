@@ -28,9 +28,11 @@ const preciosTamano = {
 };
 
 export default function PersonalizacionPizza({ route, navigation }) {
-  const { pizza } = route.params;
-  const [tamano, setTamano] = useState("");
-  const [ingredientes, setIngredientes] = useState([]);
+  const { pizza, tamano: tamanoInicial = "", ingredientes: ingredientesIniciales = [], index } =
+    route.params;
+
+  const [tamano, setTamano] = useState(tamanoInicial);
+  const [ingredientes, setIngredientes] = useState(ingredientesIniciales);
   const [precioTotal, setPrecioTotal] = useState(0);
 
   useEffect(() => {
@@ -61,31 +63,40 @@ export default function PersonalizacionPizza({ route, navigation }) {
       Alert.alert("Error", "Seleccione un tamaño para continuar");
       return;
     }
-    Alert.alert("Pizza agregada", `Total: $${precioTotal.toFixed(2)}`);
+
+    const pizzaPersonalizada = {
+      pizza,
+      tamano,
+      ingredientes,
+      precioTotal,
+    };
+
+    navigation.navigate("PizzaSeleccionada", {
+      pizzaPersonalizada,
+      index,
+    });
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
 
-      {}
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
-          <Ionicons name="menu" size={50} color="black" />
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={40} color="black" />
         </TouchableOpacity>
         <Image
           source={require("../assets/pizza_icon.png")}
           style={styles.logo}
         />
         <TouchableOpacity onPress={() => {}}>
-          <Ionicons name="notifications" size={50} color="black" />
+          <Ionicons name="notifications" size={40} color="black" />
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.titulo}>PERSONALIZA TU PIZZA</Text>
 
-        {}
         <Image source={pizza.imagen} style={styles.imagenPizza} />
         <Text style={styles.nombrePizza}>{pizza.nombre}</Text>
 
@@ -128,7 +139,7 @@ export default function PersonalizacionPizza({ route, navigation }) {
           labelStyle={{ color: "#000", fontWeight: "bold" }}
           onPress={handleAgregar}
         >
-          Agregar al carrito
+          Guardar cambios
         </Button>
       </ScrollView>
     </SafeAreaView>
@@ -146,8 +157,8 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   logo: {
-    height: 150,
-    width: 150,
+    height: 100,
+    width: 100,
     resizeMode: "contain",
   },
   container: {
