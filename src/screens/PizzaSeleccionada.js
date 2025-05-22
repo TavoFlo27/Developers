@@ -101,7 +101,12 @@ export default function PizzaSeleccionada({ route, navigation }) {
                   <Icon name="cart-minus" size={28} color="black" />
                 </TouchableOpacity>
               </View>
+
               <Text style={styles.detalle}>Tamaño: {pizzaItem.tamano}</Text>
+
+              <Text style={styles.detalle}>Ingredientes:</Text>
+              <Text style={styles.ingrediente}>- {pizzaItem.pizza.ingredientes}</Text>
+
               <Text style={styles.detalle}>Ingredientes adicionales:</Text>
               {pizzaItem.ingredientes.length > 0 ? (
                 pizzaItem.ingredientes.map((item, i) => (
@@ -112,6 +117,7 @@ export default function PizzaSeleccionada({ route, navigation }) {
               ) : (
                 <Text style={styles.ingrediente}>Sin ingredientes adicionales</Text>
               )}
+
               <Text style={styles.precio}>Total: ${pizzaItem.precioTotal.toFixed(2)}</Text>
             </View>
           </View>
@@ -230,7 +236,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     paddingHorizontal: 30,
     paddingVertical: 8,
-    borderRadius: 30, 
+    borderRadius: 30,
   },
   botonLabelNegro: {
     color: "#000",
