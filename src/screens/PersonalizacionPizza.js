@@ -28,11 +28,20 @@ const preciosTamano = {
 };
 
 export default function PersonalizacionPizza({ route, navigation }) {
-  const { pizza, tamano: tamanoInicial = "", ingredientes: ingredientesIniciales = [], index } =
-    route.params;
+  const { pizza, tamano: tamanoInicial = "", ingredientes: ingredientesInicial = [], index, carrito = [] } = route.params || {};
+
+  if (!pizza) {
+    return (
+      <SafeAreaView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
+        <Text>Error: No se recibió la información de la pizza.</Text>
+      </SafeAreaView>
+    );
+  }
 
   const [tamano, setTamano] = useState(tamanoInicial);
-  const [ingredientes, setIngredientes] = useState(ingredientesIniciales);
+  const [ingredientes, setIngredientes] = useState(ingredientesInicial);
   const [precioTotal, setPrecioTotal] = useState(0);
 
   useEffect(() => {
@@ -41,10 +50,7 @@ export default function PersonalizacionPizza({ route, navigation }) {
 
   const calcularPrecioTotal = () => {
     let precioBase = parseFloat(pizza.precio.replace("$", ""));
-    let precioIngredientes = ingredientes.reduce(
-      (sum, item) => sum + item.precio,
-      0
-    );
+    let precioIngredientes = ingredientes.reduce((sum, item) => sum + item.precio, 0);
     let precioTam = preciosTamano[tamano] || 0;
     setPrecioTotal(precioBase + precioIngredientes + precioTam);
   };
@@ -63,7 +69,7 @@ export default function PersonalizacionPizza({ route, navigation }) {
       Alert.alert("Error", "Seleccione un tamaño para continuar");
       return;
     }
-
+    // Construir la pizza personalizada para actualizar el carrito
     const pizzaPersonalizada = {
       pizza,
       tamano,
@@ -71,9 +77,11 @@ export default function PersonalizacionPizza({ route, navigation }) {
       precioTotal,
     };
 
+    // Navegar regresando la pizza personalizada y el índice para actualizar
     navigation.navigate("PizzaSeleccionada", {
       pizzaPersonalizada,
       index,
+      carrito,
     });
   };
 
@@ -82,15 +90,15 @@ export default function PersonalizacionPizza({ route, navigation }) {
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
 
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={40} color="black" />
+        <TouchableOpacity onPress={() => navigation.openDrawer()}>
+          <Ionicons name="menu" size={50} color="black" />
         </TouchableOpacity>
         <Image
           source={require("../assets/pizza_icon.png")}
           style={styles.logo}
         />
         <TouchableOpacity onPress={() => {}}>
-          <Ionicons name="notifications" size={40} color="black" />
+          <Ionicons name="notifications" size={50} color="black" />
         </TouchableOpacity>
       </View>
 
@@ -105,41 +113,35 @@ export default function PersonalizacionPizza({ route, navigation }) {
           {Object.keys(preciosTamano).map((t) => (
             <View key={t} style={styles.radioItem}>
               <RadioButton value={t} />
-              <Text>
+              <Text style={styles.radioLabel}>
                 {t} (+${preciosTamano[t]})
               </Text>
             </View>
           ))}
         </RadioButton.Group>
 
-        <Text style={styles.subtitulo}>Ingredientes adicionales:</Text>
-        {ingredientesDisponibles.map((item) => (
-          <View key={item.nombre} style={styles.checkboxItem}>
+        <Text style={styles.subtitulo}>Agrega ingredientes adicionales:</Text>
+        {ingredientesDisponibles.map((item, index) => (
+          <View key={index} style={styles.checkboxItem}>
             <Checkbox
-              status={
-                ingredientes.find((i) => i.nombre === item.nombre)
-                  ? "checked"
-                  : "unchecked"
-              }
+              status={ingredientes.find((i) => i.nombre === item.nombre) ? "checked" : "unchecked"}
               onPress={() => toggleIngrediente(item)}
             />
-            <Text>
+            <Text style={styles.checkboxLabel}>
               {item.nombre} (+${item.precio})
             </Text>
           </View>
         ))}
 
-        <Text style={styles.total}>
-          Precio total: ${precioTotal.toFixed(2)}
-        </Text>
+        <Text style={styles.precioTotal}>Precio total: ${precioTotal.toFixed(2)}</Text>
 
         <Button
           mode="contained"
-          style={styles.boton}
-          labelStyle={{ color: "#000", fontWeight: "bold" }}
+          style={styles.botonAgregar}
+          labelStyle={styles.botonLabel}
           onPress={handleAgregar}
         >
-          Guardar cambios
+          Guardar Personalización
         </Button>
       </ScrollView>
     </SafeAreaView>
@@ -149,66 +151,75 @@ export default function PersonalizacionPizza({ route, navigation }) {
 const styles = StyleSheet.create({
   topBar: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     height: 60,
     backgroundColor: "#fff",
     elevation: 4,
   },
   logo: {
-    height: 100,
-    width: 100,
+    width: 150,
+    height: 150,
     resizeMode: "contain",
   },
   container: {
-    padding: 15,
-    backgroundColor: "#fff",
+    paddingHorizontal: 20,
+    paddingBottom: 50,
     alignItems: "center",
   },
   titulo: {
-    fontSize: 22,
+    fontSize: 30,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginVertical: 10,
   },
   imagenPizza: {
     width: 200,
     height: 200,
-    borderRadius: 10,
-    marginBottom: 10,
+    borderRadius: 20,
+    marginVertical: 10,
   },
   nombrePizza: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 15,
+    marginBottom: 20,
   },
   subtitulo: {
-    fontSize: 16,
-    marginTop: 10,
-    marginBottom: 5,
+    fontSize: 22,
+    fontWeight: "bold",
+    marginTop: 20,
     alignSelf: "flex-start",
   },
   radioItem: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start",
+    marginVertical: 6,
+  },
+  radioLabel: {
+    fontSize: 18,
   },
   checkboxItem: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start",
+    marginVertical: 6,
   },
-  total: {
-    marginTop: 20,
+  checkboxLabel: {
     fontSize: 18,
-    color: "green",
-    fontWeight: "bold",
   },
-  boton: {
-    marginTop: 20,
-    backgroundColor: "yellow",
-    borderRadius: 10,
-    paddingVertical: 5,
-    paddingHorizontal: 20,
+  precioTotal: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "green",
+    marginVertical: 20,
+  },
+  botonAgregar: {
+    backgroundColor: "#FF9800",
+    paddingVertical: 10,
+    paddingHorizontal: 50,
+    borderRadius: 20,
+  },
+  botonLabel: {
+    fontSize: 20,
+    color: "black",
   },
 });

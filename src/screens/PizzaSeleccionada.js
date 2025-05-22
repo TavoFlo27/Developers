@@ -14,46 +14,49 @@ import { Button } from "react-native-paper";
 export default function PizzaSeleccionada({ route, navigation }) {
   const { carrito = [], nuevaPizza } = route.params || {};
 
+  // Inicializa el carrito, agregando nuevaPizza si existe
   const [carritoActualizado, setCarritoActualizado] = React.useState(() => {
-    if (nuevaPizza) {
-      return [...carrito, nuevaPizza];
-    }
+    if (nuevaPizza) return [...carrito, nuevaPizza];
     return carrito;
   });
 
+  // Actualizar pizza personalizada en el carrito si se recibió pizzaPersonalizada
+  React.useEffect(() => {
+    if (
+      route.params?.pizzaPersonalizada &&
+      typeof route.params.index === "number"
+    ) {
+      const nuevoCarrito = [...carritoActualizado];
+      // Solo actualizar si el índice existe en el carrito
+      if (nuevoCarrito[route.params.index]) {
+        nuevoCarrito[route.params.index] = route.params.pizzaPersonalizada;
+        setCarritoActualizado(nuevoCarrito);
+      }
+    }
+  }, [route.params?.pizzaPersonalizada]);
+
+  // Filtrar solo pizzas válidas antes de mapear para evitar errores
+  const pizzasValidas = carritoActualizado.filter(
+    (item) => item && item.pizza && item.tamano && item.ingredientes && item.precioTotal
+  );
+
   const handlePagar = () => {
-    navigation.navigate("Pago", {
-      carrito: carritoActualizado,
-    });
+    navigation.navigate("Pago", { carrito: pizzasValidas });
   };
 
   const handleAgregarOtra = () => {
-    navigation.navigate("MenuPizzas", {
-      carrito: carritoActualizado,
-    });
+    navigation.navigate("MenuPizzas", { carrito: pizzasValidas });
   };
 
   const handleEliminarPizza = (index) => {
     const nuevoCarrito = carritoActualizado.filter((_, i) => i !== index);
     setCarritoActualizado(nuevoCarrito);
-
     if (nuevoCarrito.length === 0) {
       navigation.navigate("MenuPizzas", { carrito: [] });
     }
   };
 
-  const handlePersonalizar = (pizzaItem, index) => {
-    navigation.navigate("PersonalizacionPizza", {
-      pizza: pizzaItem.pizza,
-      tamano: pizzaItem.tamano,
-      ingredientes: pizzaItem.ingredientes,
-      precioBase: parseFloat(pizzaItem.pizza.precio.replace("$", "")),
-      carrito: carritoActualizado,
-      index,
-    });
-  };
-
-  if (carritoActualizado.length === 0) {
+  if (pizzasValidas.length === 0) {
     return (
       <SafeAreaView style={styles.emptyContainer}>
         <Text style={styles.emptyText}>No hay pizzas seleccionadas.</Text>
@@ -71,16 +74,14 @@ export default function PizzaSeleccionada({ route, navigation }) {
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <View style={styles.headerBar}>
         <TouchableOpacity onPress={handleAgregarOtra}>
-          <Icon name="menu" size={40} color="#000" />
+          <Icon name="menu" size={50} color="#000" />
         </TouchableOpacity>
-
         <Image
           source={require("../assets/pizza_icon.png")}
           style={styles.logoGrande}
         />
-
         <TouchableOpacity onPress={() => alert("Notificaciones")}>
-          <Icon name="bell" size={40} color="#000" />
+          <Icon name="bell" size={50} color="#000" />
         </TouchableOpacity>
       </View>
 
@@ -92,7 +93,7 @@ export default function PizzaSeleccionada({ route, navigation }) {
       </View>
 
       <ScrollView style={styles.listaPizzas}>
-        {carritoActualizado.map((pizzaItem, index) => (
+        {pizzasValidas.map((pizzaItem, index) => (
           <View key={index} style={styles.pizzaItem}>
             <Image source={pizzaItem.pizza.imagen} style={styles.pizzaImage} />
             <View style={styles.pizzaInfo}>
@@ -104,11 +105,8 @@ export default function PizzaSeleccionada({ route, navigation }) {
               </View>
 
               <Text style={styles.detalle}>Tamaño: {pizzaItem.tamano}</Text>
-
-              <Text style={styles.detalle}>Ingredientes base:</Text>
-              <Text style={styles.ingrediente}>
-                - {pizzaItem.pizza.ingredientes}
-              </Text>
+              <Text style={styles.detalle}>Ingredientes:</Text>
+              <Text style={styles.ingrediente}>- {pizzaItem.pizza.ingredientes}</Text>
 
               <Text style={styles.detalle}>Ingredientes adicionales:</Text>
               {pizzaItem.ingredientes.length > 0 ? (
@@ -127,11 +125,19 @@ export default function PizzaSeleccionada({ route, navigation }) {
 
               <Button
                 mode="contained"
-                style={styles.botonPersonalizar}
-                labelStyle={{ color: "#000", fontWeight: "bold" }}
-                onPress={() => handlePersonalizar(pizzaItem, index)}
+                style={[styles.botonPersonalizar, { backgroundColor: "#FF9800" }]}
+                labelStyle={styles.botonLabelNegro}
+                onPress={() =>
+                  navigation.navigate("PersonalizacionPizza", {
+                    pizza: pizzaItem.pizza,
+                    tamano: pizzaItem.tamano,
+                    ingredientes: pizzaItem.ingredientes,
+                    index: index,
+                    carrito: pizzasValidas,
+                  })
+                }
               >
-                Personalizar
+                ✏
               </Button>
             </View>
           </View>
@@ -143,7 +149,7 @@ export default function PizzaSeleccionada({ route, navigation }) {
           mode="contained"
           style={[styles.boton, { backgroundColor: "#4CAF50" }]}
           onPress={handlePagar}
-          disabled={carritoActualizado.length === 0}
+          disabled={pizzasValidas.length === 0}
           labelStyle={styles.botonLabelNegro}
         >
           MÉTODO DE PAGO
@@ -164,36 +170,38 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   logoGrande: {
-    width: 120,
-    height: 120,
+    width: 150,
+    height: 150,
     resizeMode: "contain",
   },
   seleccionadaBar: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginVertical: 10,
+    marginBottom: 8,
   },
   pizzaSeleccionadaTexto: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: "bold",
     marginLeft: 10,
     color: "#000",
   },
   listaPizzas: {
-    paddingHorizontal: 10,
+    maxHeight: 400,
+    marginBottom: 10,
   },
   pizzaItem: {
     flexDirection: "row",
     backgroundColor: "#f2f2f2",
     borderRadius: 10,
     padding: 10,
+    marginHorizontal: 10,
     marginBottom: 10,
   },
   pizzaImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 10,
+    width: 170,
+    height: 170,
+    borderRadius: 17,
   },
   pizzaInfo: {
     flex: 1,
@@ -206,47 +214,47 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   nombre: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 25,
     color: "#000",
   },
   detalle: {
-    fontSize: 16,
+    fontSize: 18,
     marginTop: 4,
-    fontWeight: "500",
   },
   ingrediente: {
-    fontSize: 14,
+    fontSize: 16,
     marginLeft: 10,
   },
   precio: {
-    fontSize: 18,
+    fontSize: 25,
     color: "green",
     fontWeight: "bold",
     marginTop: 10,
   },
   botonesContainer: {
-    padding: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
     backgroundColor: "#fff",
     borderTopWidth: 1,
     borderColor: "#ccc",
+    alignItems: "center",
   },
   boton: {
     alignSelf: "center",
     paddingHorizontal: 30,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: 30,
   },
   botonLabelNegro: {
     color: "#000",
-    fontSize: 18,
+    fontSize: 25,
     fontWeight: "bold",
   },
   botonPersonalizar: {
-    backgroundColor: "#FFD700",
     marginTop: 10,
-    borderRadius: 10,
-    alignSelf: "flex-start",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 8,
   },
   emptyContainer: {
     flex: 1,
@@ -259,3 +267,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
