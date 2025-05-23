@@ -14,20 +14,17 @@ import { Button } from "react-native-paper";
 export default function PizzaSeleccionada({ route, navigation }) {
   const { carrito = [], nuevaPizza } = route.params || {};
 
-  // Inicializa el carrito, agregando nuevaPizza si existe
   const [carritoActualizado, setCarritoActualizado] = React.useState(() => {
     if (nuevaPizza) return [...carrito, nuevaPizza];
     return carrito;
   });
 
-  // Actualizar pizza personalizada en el carrito si se recibió pizzaPersonalizada
   React.useEffect(() => {
     if (
       route.params?.pizzaPersonalizada &&
       typeof route.params.index === "number"
     ) {
       const nuevoCarrito = [...carritoActualizado];
-      // Solo actualizar si el índice existe en el carrito
       if (nuevoCarrito[route.params.index]) {
         nuevoCarrito[route.params.index] = route.params.pizzaPersonalizada;
         setCarritoActualizado(nuevoCarrito);
@@ -35,9 +32,9 @@ export default function PizzaSeleccionada({ route, navigation }) {
     }
   }, [route.params?.pizzaPersonalizada]);
 
-  // Filtrar solo pizzas válidas antes de mapear para evitar errores
   const pizzasValidas = carritoActualizado.filter(
-    (item) => item && item.pizza && item.tamano && item.ingredientes && item.precioTotal
+    (item) =>
+      item && item.pizza && item.tamano && item.ingredientes && item.precioTotal
   );
 
   const handlePagar = () => {
@@ -92,68 +89,70 @@ export default function PizzaSeleccionada({ route, navigation }) {
         <Text style={styles.pizzaSeleccionadaTexto}>PIZZAS SELECCIONADAS</Text>
       </View>
 
-      <ScrollView style={styles.listaPizzas}>
-        {pizzasValidas.map((pizzaItem, index) => (
-          <View key={index} style={styles.pizzaItem}>
-            <Image source={pizzaItem.pizza.imagen} style={styles.pizzaImage} />
-            <View style={styles.pizzaInfo}>
-              <View style={styles.pizzaTop}>
-                <Text style={styles.nombre}>{pizzaItem.pizza.nombre}</Text>
-                <TouchableOpacity onPress={() => handleEliminarPizza(index)}>
-                  <Icon name="cart-minus" size={28} color="black" />
-                </TouchableOpacity>
+      <View style={styles.contentContainer}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {pizzasValidas.map((pizzaItem, index) => (
+            <View key={index} style={styles.pizzaItem}>
+              <Image source={pizzaItem.pizza.imagen} style={styles.pizzaImage} />
+              <View style={styles.pizzaInfo}>
+                <View style={styles.pizzaTop}>
+                  <Text style={styles.nombre}>{pizzaItem.pizza.nombre}</Text>
+                  <TouchableOpacity onPress={() => handleEliminarPizza(index)}>
+                    <Icon name="cart-minus" size={28} color="black" />
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.detalle}>Tamaño: {pizzaItem.tamano}</Text>
+                <Text style={styles.detalle}>Ingredientes:</Text>
+                <Text style={styles.ingrediente}>- {pizzaItem.pizza.ingredientes}</Text>
+
+                <Text style={styles.detalle}>Ingredientes adicionales:</Text>
+                {pizzaItem.ingredientes.length > 0 ? (
+                  pizzaItem.ingredientes.map((item, i) => (
+                    <Text key={i} style={styles.ingrediente}>
+                      - {item.nombre}
+                    </Text>
+                  ))
+                ) : (
+                  <Text style={styles.ingrediente}>Sin ingredientes adicionales</Text>
+                )}
+
+                <Text style={styles.precio}>
+                  Total: ${pizzaItem.precioTotal.toFixed(2)}
+                </Text>
+
+                <Button
+                  mode="contained"
+                  style={[styles.botonPersonalizar, { backgroundColor: "#FF9800" }]}
+                  labelStyle={styles.botonLabelNegro}
+                  onPress={() =>
+                    navigation.navigate("PersonalizacionPizza", {
+                      pizza: pizzaItem.pizza,
+                      tamano: pizzaItem.tamano,
+                      ingredientes: pizzaItem.ingredientes,
+                      index: index,
+                      carrito: pizzasValidas,
+                    })
+                  }
+                >
+                  ✏
+                </Button>
               </View>
-
-              <Text style={styles.detalle}>Tamaño: {pizzaItem.tamano}</Text>
-              <Text style={styles.detalle}>Ingredientes:</Text>
-              <Text style={styles.ingrediente}>- {pizzaItem.pizza.ingredientes}</Text>
-
-              <Text style={styles.detalle}>Ingredientes adicionales:</Text>
-              {pizzaItem.ingredientes.length > 0 ? (
-                pizzaItem.ingredientes.map((item, i) => (
-                  <Text key={i} style={styles.ingrediente}>
-                    - {item.nombre}
-                  </Text>
-                ))
-              ) : (
-                <Text style={styles.ingrediente}>Sin ingredientes adicionales</Text>
-              )}
-
-              <Text style={styles.precio}>
-                Total: ${pizzaItem.precioTotal.toFixed(2)}
-              </Text>
-
-              <Button
-                mode="contained"
-                style={[styles.botonPersonalizar, { backgroundColor: "#FF9800" }]}
-                labelStyle={styles.botonLabelNegro}
-                onPress={() =>
-                  navigation.navigate("PersonalizacionPizza", {
-                    pizza: pizzaItem.pizza,
-                    tamano: pizzaItem.tamano,
-                    ingredientes: pizzaItem.ingredientes,
-                    index: index,
-                    carrito: pizzasValidas,
-                  })
-                }
-              >
-                ✏
-              </Button>
             </View>
-          </View>
-        ))}
-      </ScrollView>
+          ))}
+        </ScrollView>
 
-      <View style={styles.botonesContainer}>
-        <Button
-          mode="contained"
-          style={[styles.boton, { backgroundColor: "#4CAF50" }]}
-          onPress={handlePagar}
-          disabled={pizzasValidas.length === 0}
-          labelStyle={styles.botonLabelNegro}
-        >
-          MÉTODO DE PAGO
-        </Button>
+        <View style={styles.botonesContainer}>
+          <Button
+            mode="contained"
+            style={[styles.boton, { backgroundColor: "#4CAF50" }]}
+            onPress={handlePagar}
+            disabled={pizzasValidas.length === 0}
+            labelStyle={styles.botonLabelNegro}
+          >
+            MÉTODO DE PAGO
+          </Button>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -186,9 +185,12 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     color: "#000",
   },
-  listaPizzas: {
-    maxHeight: 400,
-    marginBottom: 10,
+  contentContainer: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  scrollContent: {
+    paddingBottom: 20,
   },
   pizzaItem: {
     flexDirection: "row",
@@ -237,7 +239,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderTopWidth: 1,
     borderColor: "#ccc",
-    alignItems: "center",
   },
   boton: {
     alignSelf: "center",
@@ -267,4 +268,3 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
-
