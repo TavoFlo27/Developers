@@ -13,9 +13,11 @@ import {
 } from "react-native";
 import { Button, Provider as PaperProvider } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
 
 export default function Pago({ route, navigation }) {
-  const { pizza, tamano, ingredientes, precioTotal } = route.params;
+  const { pizza, tamano, ingredientes, precioTotal } = route.params || {};
   const [metodoPago, setMetodoPago] = useState(null);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [pagoProcesado, setPagoProcesado] = useState(false);
@@ -27,18 +29,34 @@ export default function Pago({ route, navigation }) {
     }
 
     setPagoProcesado(true);
-    Alert.alert("Pago exitoso", `Se ha procesado el pago por $${precioTotal.toFixed(2)}`);
+    Alert.alert("Pedido exitoso", `Se ha procesado el pago por $${(precioTotal || 0).toFixed(2)}`);
   };
 
-  const handleTicket = () => {
-    Alert.alert(
-      "Ticket generado",
-      `Pizza: ${pizza.nombre}\nTamaño: ${tamano}\nIngredientes: ${
-        ingredientes.length > 0
-          ? ingredientes.map((i) => i.nombre).join(", ")
-          : "Sin adicionales"
-      }\nMétodo de pago: ${metodoPago}\nTotal: $${precioTotal.toFixed(2)}`
-    );
+  const handleTicket = async () => {
+    const html = `
+      <html>
+        <body>
+          <h1 style="text-align: center;">Ticket de Pedido</h1>
+          <p><strong>Pizza:</strong> ${pizza.nombre}</p>
+          <p><strong>Tamaño:</strong> ${tamano}</p>
+          <p><strong>Ingredientes:</strong> ${
+            ingredientes.length > 0
+              ? ingredientes.map((i) => i.nombre).join(", ")
+              : "Sin adicionales"
+          }</p>
+          <p><strong>Método de pago:</strong> ${metodoPago}</p>
+          <h2>Total: $${(precioTotal || 0).toFixed(2)}</h2>
+        </body>
+      </html>
+    `;
+
+    const { uri } = await Print.printToFileAsync({ html });
+
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(uri);
+    } else {
+      Alert.alert("Error", "Compartir no está disponible en este dispositivo");
+    }
   };
 
   return (
@@ -113,7 +131,7 @@ export default function Pago({ route, navigation }) {
             disabled={!metodoPago}
             style={styles.botonPagar}
           >
-            PAGAR PEDIDO
+            REALIZAR PEDIDO
           </Button>
 
           {pagoProcesado && (
@@ -216,14 +234,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   botonPagar: {
-  backgroundColor: "green",
-  paddingHorizontal: 24,
-  paddingVertical: 10,
-  borderRadius: 12,
-  borderWidth: 2,
-  alignSelf: "center",
-},
-
+    backgroundColor: "green",
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 2,
+    alignSelf: "center",
+  },
   botonTicket: {
     backgroundColor: "blue",
     marginTop: 15,
