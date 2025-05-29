@@ -29,7 +29,10 @@ export default function Pago({ route, navigation }) {
     }
 
     setPagoProcesado(true);
-    Alert.alert("Pedido exitoso", `Se ha procesado el pago por $${(precioTotal || 0).toFixed(2)}`);
+    Alert.alert(
+      "Pedido exitoso",
+      `Se ha procesado el pago por $${(precioTotal || 0).toFixed(2)}`
+    );
   };
 
   const handleTicket = async () => {
@@ -81,7 +84,12 @@ export default function Pago({ route, navigation }) {
             <View style={styles.shadowBackground}>
               <Text style={styles.titulo}>MÉTODO DE PAGO</Text>
             </View>
-            <Ionicons name="card-outline" size={32} color="black" style={styles.iconTerminal} />
+            <Ionicons
+              name="card-outline"
+              size={32}
+              color="black"
+              style={styles.iconTerminal}
+            />
           </View>
 
           <TouchableOpacity
@@ -100,7 +108,10 @@ export default function Pago({ route, navigation }) {
             animationType="slide"
             onRequestClose={() => setDialogVisible(false)}
           >
-            <Pressable style={styles.modalOverlay} onPress={() => setDialogVisible(false)}>
+            <Pressable
+              style={styles.modalOverlay}
+              onPress={() => setDialogVisible(false)}
+            >
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>Selecciona un método de pago</Text>
                 <TouchableOpacity
@@ -145,11 +156,12 @@ export default function Pago({ route, navigation }) {
               </Button>
 
               <Button
-                mode="outlined"
-                style={{ marginTop: 15 }}
+                mode="contained"
+                style={styles.botonInformacionPedido}
+                labelStyle={{ color: "black" }}
                 onPress={() => navigation.navigate("InformacionPedido")}
               >
-                IR A INFORMACIÓN DEL PEDIDO
+                INFORMACIÓN DEL PEDIDO
               </Button>
             </>
           )}
@@ -246,7 +258,7 @@ const styles = StyleSheet.create({
   botonPagar: {
     backgroundColor: "green",
     paddingHorizontal: 24,
-    paddingVertical: 10,
+    paddingVertical: 6, 
     borderRadius: 12,
     borderWidth: 2,
     alignSelf: "center",
@@ -254,6 +266,16 @@ const styles = StyleSheet.create({
   botonTicket: {
     backgroundColor: "blue",
     marginTop: 15,
-    width: "100%",
+    alignSelf: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 6, 
+    borderRadius: 12,
+  },
+  botonInformacionPedido: {
+    marginTop: 15,
+    backgroundColor: "#87CEEB",
+    alignSelf: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 6, 
   },
 });
