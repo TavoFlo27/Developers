@@ -21,7 +21,7 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 export default function Pago({ route, navigation }) {
   // Recibimos el carrito y el usuario desde ruta
-  const { carrito = [], user } = route.params || {};
+  const { carrito = [], usuario } = route.params || {};
 
   const [metodoPago, setMetodoPago] = useState(null);
   const [dialogVisible, setDialogVisible] = useState(false);
@@ -43,7 +43,7 @@ export default function Pago({ route, navigation }) {
     try {
       // Guardar el pedido en Firestore
       const docRef = await addDoc(collection(db, "pedidos"), {
-        usuario: user || null,
+        usuario: usuario || null,
         carrito: carrito,
         metodoPago,
         precioTotal,
@@ -198,7 +198,7 @@ export default function Pago({ route, navigation }) {
                 onPress={() =>
                   navigation.navigate("InformacionPedido", {
                     pedidoId,
-                    user,
+                    usuario,
                   })
                 }
               >

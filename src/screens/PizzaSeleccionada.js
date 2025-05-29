@@ -12,7 +12,7 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { Button } from "react-native-paper";
 
 export default function PizzaSeleccionada({ route, navigation }) {
-  const { carrito = [], nuevaPizza, user } = route.params || {};
+  const { carrito = [], nuevaPizza, usuario } = route.params || {};
 
   const [carritoActualizado, setCarritoActualizado] = React.useState(() => {
     if (nuevaPizza) return [...carrito, nuevaPizza];
@@ -38,18 +38,18 @@ export default function PizzaSeleccionada({ route, navigation }) {
   );
 
   const handlePagar = () => {
-    navigation.navigate("Pago", { carrito: pizzasValidas, user });
+    navigation.navigate("Pago", { carrito: pizzasValidas, usuario });
   };
 
   const handleAgregarOtra = () => {
-    navigation.navigate("MenuPizzas", { carrito: pizzasValidas, user });
+    navigation.navigate("MenuPizzas", { carrito: pizzasValidas, usuario });
   };
 
   const handleEliminarPizza = (index) => {
     const nuevoCarrito = carritoActualizado.filter((_, i) => i !== index);
     setCarritoActualizado(nuevoCarrito);
     if (nuevoCarrito.length === 0) {
-      navigation.navigate("MenuPizzas", { carrito: [], user });
+      navigation.navigate("MenuPizzas", { carrito: [], usuario });
     }
   };
 
@@ -59,7 +59,7 @@ export default function PizzaSeleccionada({ route, navigation }) {
         <Text style={styles.emptyText}>No hay pizzas seleccionadas.</Text>
         <Button
           mode="contained"
-          onPress={() => navigation.navigate("MenuPizzas", { user })}
+          onPress={() => navigation.navigate("MenuPizzas", { usuario })}
         >
           Agregar Pizza
         </Button>
@@ -132,7 +132,7 @@ export default function PizzaSeleccionada({ route, navigation }) {
                       ingredientes: pizzaItem.ingredientes,
                       index: index,
                       carrito: pizzasValidas,
-                      user,
+                      usuario,
                     })
                   }
                 >

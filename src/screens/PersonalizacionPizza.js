@@ -34,13 +34,13 @@ export default function PersonalizacionPizza({ route, navigation }) {
     ingredientes: ingredientesInicial = [],
     index = null,
     carrito = [],
+    usuario = null, // 🆕 Se recibe el usuario desde route.params
   } = route.params || {};
 
   const [tamano, setTamano] = useState(tamanoInicial);
   const [ingredientes, setIngredientes] = useState(ingredientesInicial);
   const [precioTotal, setPrecioTotal] = useState(0);
 
-  // Estados para controlar la visibilidad de las secciones
   const [mostrarTamano, setMostrarTamano] = useState(false);
   const [mostrarIngredientes, setMostrarIngredientes] = useState(false);
 
@@ -63,11 +63,9 @@ export default function PersonalizacionPizza({ route, navigation }) {
   const toggleIngrediente = (item) => {
     setIngredientes((prev) => {
       const existe = prev.find((i) => i.nombre === item.nombre);
-      if (existe) {
-        return prev.filter((i) => i.nombre !== item.nombre);
-      } else {
-        return [...prev, item];
-      }
+      return existe
+        ? prev.filter((i) => i.nombre !== item.nombre)
+        : [...prev, item];
     });
   };
 
@@ -82,12 +80,14 @@ export default function PersonalizacionPizza({ route, navigation }) {
       tamano,
       ingredientes,
       precioTotal,
+      usuario, // 🆕 Se incluye el usuario en la pizza personalizada
     };
 
     navigation.navigate("PizzaSeleccionada", {
       pizzaPersonalizada,
       index,
       carrito,
+      usuario, // 🆕 Se pasa también a la siguiente pantalla
     });
   };
 
@@ -124,12 +124,10 @@ export default function PersonalizacionPizza({ route, navigation }) {
         <Image source={pizza.imagen} style={styles.imagenPizza} />
         <Text style={styles.nombrePizza}>{pizza.nombre}</Text>
 
-        {/* Precio total arriba de tamaño */}
         <Text style={styles.precioTotal}>
           Total: ${precioTotal.toFixed(2)}
         </Text>
 
-        {/* Botón para mostrar/ocultar tamaños */}
         <TouchableOpacity
           style={styles.seccionHeader}
           onPress={() => setMostrarTamano((prev) => !prev)}
@@ -146,15 +144,12 @@ export default function PersonalizacionPizza({ route, navigation }) {
             {Object.entries(preciosTamano).map(([t, precio]) => (
               <View key={t} style={styles.radioItem}>
                 <RadioButton value={t} />
-                <Text style={styles.radioLabel}>
-                  {t} (+${precio})
-                </Text>
+                <Text style={styles.radioLabel}>{t} (+${precio})</Text>
               </View>
             ))}
           </RadioButton.Group>
         )}
 
-        {/* Botón para mostrar/ocultar ingredientes */}
         <TouchableOpacity
           style={styles.seccionHeader}
           onPress={() => setMostrarIngredientes((prev) => !prev)}
@@ -166,7 +161,7 @@ export default function PersonalizacionPizza({ route, navigation }) {
             color="black"
           />
         </TouchableOpacity>
-        {mostrarIngredientes && (
+        {mostrarIngredientes &&
           ingredientesDisponibles.map((item, index) => (
             <View key={index} style={styles.checkboxItem}>
               <Checkbox
@@ -181,8 +176,7 @@ export default function PersonalizacionPizza({ route, navigation }) {
                 {item.nombre} (+${item.precio})
               </Text>
             </View>
-          ))
-        )}
+          ))}
 
         <Button
           mode="contained"
@@ -223,17 +217,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   titulo: {
-  fontSize: 30,
-  fontWeight: "bold",
-  marginVertical: 10,
-  color: "black",
-  backgroundColor: "yellow",
-  paddingHorizontal: 20,
-  paddingVertical: 8,
-  borderRadius: 30,  // bordes circulares
-  overflow: "hidden",
-},
-
+    fontSize: 30,
+    fontWeight: "bold",
+    marginVertical: 10,
+    color: "black",
+    backgroundColor: "yellow",
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 30,
+    overflow: "hidden",
+  },
   imagenPizza: {
     width: 200,
     height: 200,
@@ -282,13 +275,12 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   botonAgregar: {
-    backgroundColor: "#4CAF50", // Verde
+    backgroundColor: "#4CAF50",
     paddingVertical: 10,
     paddingHorizontal: 50,
     borderRadius: 20,
     marginTop: 30,
   },
-
   botonLabel: {
     fontSize: 20,
     color: "black",

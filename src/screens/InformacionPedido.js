@@ -7,23 +7,44 @@ import {
   Image,
   SafeAreaView,
   StatusBar,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 
 export default function InformacionPedido({ navigation, route }) {
   const [estado, setEstado] = useState('Preparando');
 
-  // Recibe el usuario completo desde params
   const datosUsuario = route?.params?.usuario || null;
+  const pedidoId = route?.params?.pedidoId || null;
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (estado === 'Preparando') setEstado('En camino');
-      else if (estado === 'En camino') setEstado('Entregado');
-    }, 5000);
+    const timer1 = setTimeout(() => {
+      actualizarEstado('En camino');
+    }, 10 * 60 * 1000); // 10 minutos
 
-    return () => clearTimeout(timer);
-  }, [estado]);
+    const timer2 = setTimeout(() => {
+      actualizarEstado('Entregado');
+    }, 20 * 60 * 1000); // 20 minutos
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, []);
+
+  const actualizarEstado = async (nuevoEstado) => {
+    setEstado(nuevoEstado);
+    if (pedidoId) {
+      try {
+        const pedidoRef = doc(db, 'pedidos', pedidoId);
+        await updateDoc(pedidoRef, { estado: nuevoEstado });
+      } catch (error) {
+        console.error('Error al actualizar estado del pedido:', error);
+      }
+    }
+  };
 
   const getEstiloEstado = (actual) => ({
     ...styles.botonEstado,
@@ -48,7 +69,7 @@ export default function InformacionPedido({ navigation, route }) {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.titleRow}>
           <View style={styles.shadowBackground}>
             <Text style={styles.titulo}>INFORMACIÓN DEL PEDIDO</Text>
@@ -77,22 +98,14 @@ export default function InformacionPedido({ navigation, route }) {
 
         {datosUsuario ? (
           <View style={styles.datosUsuario}>
-            <Text style={styles.datoTitulo}>NOMBRE:</Text>
-            <Text style={styles.datoValor}>{datosUsuario.nombre}</Text>
-
-            <Text style={styles.datoTitulo}>TELÉFONO:</Text>
-            <Text style={styles.datoValor}>{datosUsuario.telefono}</Text>
-
-            <Text style={styles.datoTitulo}>DOMICILIO:</Text>
-            <Text style={styles.datoValor}>{datosUsuario.domicilio}</Text>
-
-            <Text style={styles.datoTitulo}>PAGO:</Text>
-            <Text style={styles.datoValor}>Pendiente</Text>
+            <Text style={styles.datoTitulo}>NOMBRE:</Text><Text style={styles.datoValor}>{datosUsuario.nombre}</Text>
+            <Text style={styles.datoTitulo}>TELÉFONO:</Text><Text style={styles.datoValor}>{datosUsuario.telefono}</Text>
+            <Text style={styles.datoTitulo}>DOMICILIO:</Text><Text style={styles.datoValor}>{datosUsuario.domicilio}</Text>
           </View>
         ) : (
           <Text>Cargando información del usuario...</Text>
         )}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -115,7 +128,6 @@ const styles = StyleSheet.create({
   container: {
     padding: 25,
     backgroundColor: '#fff',
-    flex: 1,
     alignItems: 'center',
   },
   titleRow: {
