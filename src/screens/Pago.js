@@ -16,23 +16,51 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 
+import { db } from "../firebaseConfig"; // <-- Importa Firestore
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+
 export default function Pago({ route, navigation }) {
-  const { pizza, tamano, ingredientes, precioTotal } = route.params || {};
+  // Recibimos el carrito y el usuario desde ruta
+  const { carrito = [], user } = route.params || {};
+
   const [metodoPago, setMetodoPago] = useState(null);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [pagoProcesado, setPagoProcesado] = useState(false);
+  const [pedidoId, setPedidoId] = useState(null);
 
-  const handlePagar = () => {
+  // Calculamos el total del pedido sumando el precio de cada pizza
+  const precioTotal = carrito.reduce(
+    (total, item) => total + (item.precioTotal || 0),
+    0
+  );
+
+  const handlePagar = async () => {
     if (!metodoPago) {
       Alert.alert("Error", "Debe seleccionar un método de pago");
       return;
     }
 
-    setPagoProcesado(true);
-    Alert.alert(
-      "Pedido exitoso",
-      `Se ha procesado el pago por $${(precioTotal || 0).toFixed(2)}`
-    );
+    try {
+      // Guardar el pedido en Firestore
+      const docRef = await addDoc(collection(db, "pedidos"), {
+        usuario: user || null,
+        carrito: carrito,
+        metodoPago,
+        precioTotal,
+        fecha: serverTimestamp(),
+        estado: "pendiente",
+      });
+
+      setPedidoId(docRef.id);
+      setPagoProcesado(true);
+      Alert.alert(
+        "Pedido exitoso",
+        `Se ha procesado el pago por $${precioTotal.toFixed(2)}`
+      );
+    } catch (error) {
+      console.error("Error guardando el pedido: ", error);
+      Alert.alert("Error", "No se pudo guardar el pedido");
+    }
   };
 
   const handleTicket = async () => {
@@ -40,15 +68,23 @@ export default function Pago({ route, navigation }) {
       <html>
         <body>
           <h1 style="text-align: center;">Ticket de Pedido</h1>
-          <p><strong>Pizza:</strong> ${pizza.nombre}</p>
-          <p><strong>Tamaño:</strong> ${tamano}</p>
-          <p><strong>Ingredientes:</strong> ${
-            ingredientes.length > 0
-              ? ingredientes.map((i) => i.nombre).join(", ")
-              : "Sin adicionales"
-          }</p>
+          ${carrito
+            .map(
+              (item, i) => `
+              <p><strong>Pizza ${i + 1}:</strong> ${item.pizza.nombre}</p>
+              <p><strong>Tamaño:</strong> ${item.tamano}</p>
+              <p><strong>Ingredientes adicionales:</strong> ${
+                item.ingredientes.length > 0
+                  ? item.ingredientes.map((i) => i.nombre).join(", ")
+                  : "Sin adicionales"
+              }</p>
+              <p><strong>Subtotal:</strong> $${item.precioTotal.toFixed(2)}</p>
+              <hr />
+            `
+            )
+            .join("")}
           <p><strong>Método de pago:</strong> ${metodoPago}</p>
-          <h2>Total: $${(precioTotal || 0).toFixed(2)}</h2>
+          <h2>Total: $${precioTotal.toFixed(2)}</h2>
         </body>
       </html>
     `;
@@ -159,7 +195,12 @@ export default function Pago({ route, navigation }) {
                 mode="contained"
                 style={styles.botonInformacionPedido}
                 labelStyle={{ color: "black" }}
-                onPress={() => navigation.navigate("InformacionPedido")}
+                onPress={() =>
+                  navigation.navigate("InformacionPedido", {
+                    pedidoId,
+                    user,
+                  })
+                }
               >
                 INFORMACIÓN DEL PEDIDO
               </Button>
@@ -258,7 +299,7 @@ const styles = StyleSheet.create({
   botonPagar: {
     backgroundColor: "green",
     paddingHorizontal: 24,
-    paddingVertical: 6, 
+    paddingVertical: 6,
     borderRadius: 12,
     borderWidth: 2,
     alignSelf: "center",
@@ -268,7 +309,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
     alignSelf: "center",
     paddingHorizontal: 24,
-    paddingVertical: 6, 
+    paddingVertical: 6,
     borderRadius: 12,
   },
   botonInformacionPedido: {
@@ -276,6 +317,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#87CEEB",
     alignSelf: "center",
     paddingHorizontal: 24,
-    paddingVertical: 6, 
+    paddingVertical: 6,
   },
 });

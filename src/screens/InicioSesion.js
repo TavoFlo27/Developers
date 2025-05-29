@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { TextInput, Button } from "react-native-paper";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../firebaseConfig"; // Asegúrate que esta ruta es correcta
+import { db } from "../firebaseConfig";
 
 export default function InicioSesion({ navigation }) {
   const [usuario, setUsuario] = useState("");
@@ -17,14 +17,12 @@ export default function InicioSesion({ navigation }) {
 
   const handleLogin = async () => {
     try {
-      // Verificación para el cajero fijo
       if (usuario === "ADMINISTRADOR" && contrasena === "PASSWORD") {
         Alert.alert("Acceso concedido", "Bienvenido, Cajero");
-        navigation.navigate("MenuPizzas");
+        navigation.navigate("MenuPizzas", { usuario: { nombre: "Administrador" } });
         return;
       }
 
-      // Verificación de usuario en Firebase Firestore
       const usuariosRef = collection(db, "usuarios");
       const q = query(
         usuariosRef,
@@ -34,8 +32,9 @@ export default function InicioSesion({ navigation }) {
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
+        const userData = querySnapshot.docs[0].data();
         Alert.alert("¡Bienvenido!");
-        navigation.navigate("MenuPizzas");
+        navigation.navigate("MenuPizzas", { usuario: userData });
       } else {
         Alert.alert("Error", "Usuario o contraseña incorrectos");
       }

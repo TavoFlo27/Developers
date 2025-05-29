@@ -42,11 +42,13 @@ const pizzas = [
 ];
 
 export default function MenuPizzas({ route, navigation }) {
+  const { user } = route.params; // 👈 Recuperamos los datos del usuario
   const [carrito, setCarrito] = React.useState(route.params?.carrito || []);
 
   const seleccionarPizza = (item) => {
     navigation.navigate("PizzaSeleccionada", {
       carrito,
+      user, // 👈 Pasamos el usuario a la siguiente pantalla
       nuevaPizza: {
         pizza: item,
         tamano: "Familiar",
@@ -62,7 +64,7 @@ export default function MenuPizzas({ route, navigation }) {
         <View style={styles.headerBar}>
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate("PizzaSeleccionada", { carrito })
+              navigation.navigate("PizzaSeleccionada", { carrito, user })
             }
           >
             <Icon name="menu" size={50} color="#000" />

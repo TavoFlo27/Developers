@@ -10,8 +10,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function InformacionPedido({ navigation }) {
+export default function InformacionPedido({ navigation, route }) {
   const [estado, setEstado] = useState('Preparando');
+
+  // Recibe el usuario completo desde params
+  const datosUsuario = route?.params?.usuario || null;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -22,19 +25,16 @@ export default function InformacionPedido({ navigation }) {
     return () => clearTimeout(timer);
   }, [estado]);
 
-  const getEstiloEstado = (actual) => {
-    return {
-      ...styles.botonEstado,
-      backgroundColor: estado === actual ? '#90ee90' : '#f2f2f2',
-      borderColor: '#000',
-      borderWidth: 1,
-    };
-  };
+  const getEstiloEstado = (actual) => ({
+    ...styles.botonEstado,
+    backgroundColor: estado === actual ? '#90ee90' : '#f2f2f2',
+    borderColor: '#000',
+    borderWidth: 1,
+  });
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-      {/* Menú superior personalizado */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.openDrawer()}>
           <Ionicons name="menu" size={50} color="black" />
@@ -55,7 +55,6 @@ export default function InformacionPedido({ navigation }) {
           </View>
         </View>
 
-        {/* Texto "ESTADO DEL PEDIDO" centrado */}
         <Text style={styles.subtitulo}>ESTADO DEL PEDIDO</Text>
 
         <View style={getEstiloEstado('Preparando')}>
@@ -74,16 +73,25 @@ export default function InformacionPedido({ navigation }) {
           </Text>
         </View>
 
-        {/* Texto "INFORMACIÓN DEL USUARIO" centrado */}
         <Text style={[styles.subtitulo, { marginTop: 40 }]}>INFORMACIÓN DEL USUARIO</Text>
 
-        {/* Datos del usuario */}
-        <View style={styles.datosUsuario}>
-          <Text style={styles.datoTitulo}>NOMBRE:</Text>
-          <Text style={styles.datoTitulo}>TELÉFONO:</Text>
-          <Text style={styles.datoTitulo}>DOMICILIO:</Text>
-          <Text style={styles.datoTitulo}>PAGO:</Text>
-        </View>
+        {datosUsuario ? (
+          <View style={styles.datosUsuario}>
+            <Text style={styles.datoTitulo}>NOMBRE:</Text>
+            <Text style={styles.datoValor}>{datosUsuario.nombre}</Text>
+
+            <Text style={styles.datoTitulo}>TELÉFONO:</Text>
+            <Text style={styles.datoValor}>{datosUsuario.telefono}</Text>
+
+            <Text style={styles.datoTitulo}>DOMICILIO:</Text>
+            <Text style={styles.datoValor}>{datosUsuario.domicilio}</Text>
+
+            <Text style={styles.datoTitulo}>PAGO:</Text>
+            <Text style={styles.datoValor}>Pendiente</Text>
+          </View>
+        ) : (
+          <Text>Cargando información del usuario...</Text>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -137,7 +145,7 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: 'bold',
     color: 'black',
-    alignSelf: 'center', 
+    alignSelf: 'center',
     marginVertical: 10,
   },
   botonEstado: {
