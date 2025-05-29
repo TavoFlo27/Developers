@@ -135,13 +135,23 @@ export default function Pago({ route, navigation }) {
           </Button>
 
           {pagoProcesado && (
-            <Button
-              mode="contained"
-              onPress={handleTicket}
-              style={styles.botonTicket}
-            >
-              TICKET
-            </Button>
+            <>
+              <Button
+                mode="contained"
+                onPress={handleTicket}
+                style={styles.botonTicket}
+              >
+                TICKET
+              </Button>
+
+              <Button
+                mode="outlined"
+                style={{ marginTop: 15 }}
+                onPress={() => navigation.navigate("InformacionPedido")}
+              >
+                IR A INFORMACIÓN DEL PEDIDO
+              </Button>
+            </>
           )}
         </View>
       </SafeAreaView>
