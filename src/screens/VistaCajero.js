@@ -21,11 +21,7 @@ export default function VistaCajero({ navigation, route }) {
   const usuario = route?.params?.usuario || {};
 
   useEffect(() => {
-    if (usuario?.rol !== 'cajero') {
-      Alert.alert('Acceso Denegado', 'Esta sección es solo para el cajero');
-      navigation.goBack();
-      return;
-    }
+    
 
     const obtenerPedidos = async () => {
       try {
@@ -108,36 +104,43 @@ export default function VistaCajero({ navigation, route }) {
 
   const renderPedido = ({ item }) => (
     <View style={[styles.card, { backgroundColor: colorFondoEstado(item.estado) }]}>
-      <Text style={styles.titulo}>Pedido: {item.id}</Text>
+      <Text style={styles.titulo}>Pedido de: {item.usuario.usuario}</Text>
+      <Text style={styles.texto}>ID: {item.id}</Text>
       <Text style={styles.texto}>Cliente: {item.usuario?.nombre || 'Desconocido'}</Text>
       <Text style={styles.texto}>Teléfono: {item.usuario?.telefono || '-'}</Text>
       <Text style={styles.texto}>Domicilio: {item.usuario?.domicilio || '-'}</Text>
       <Text style={styles.texto}>Estado actual: {item.estado}</Text>
 
-      <Text style={[styles.titulo, { marginTop: 10 }]}>Detalles de las Pizzas:</Text>
-      {item.pizzas && item.pizzas.length > 0 ? (
-        item.pizzas.map((pizza, index) => (
-          <View key={index} style={styles.pizzaCard}>
-            <Text style={styles.texto}>
-              <Text style={{ fontWeight: 'bold' }}>Nombre:</Text> {pizza.nombre}
-            </Text>
-            <Text style={styles.texto}>
-              <Text style={{ fontWeight: 'bold' }}>Tamaño:</Text> {pizza.tamaño}
-            </Text>
-            <Text style={styles.texto}>
-              <Text style={{ fontWeight: 'bold' }}>Ingredientes:</Text> {pizza.ingredientes.join(', ')}
-            </Text>
-            <Text style={styles.texto}>
-              <Text style={{ fontWeight: 'bold' }}>Cantidad:</Text> {pizza.cantidad || 1}
-            </Text>
-            <Text style={styles.texto}>
-              <Text style={{ fontWeight: 'bold' }}>Precio:</Text> ${pizza.precio?.toFixed(2) || '0.00'}
-            </Text>
-          </View>
-        ))
-      ) : (
-        <Text style={styles.texto}>No hay pizzas en este pedido.</Text>
-      )}
+
+      {item.carrito && item.carrito.length > 0 ? (
+  item.carrito.map((pizza, index) => (
+    <View key={index} style={styles.pizzaCard}>
+      <Text style={styles.texto}>
+        <Text style={{ fontWeight: 'bold' }}>Pizza {index + 1}:</Text> {pizza.pizza?.nombre || 'Sin nombre'}
+      </Text>
+      <Text style={styles.texto}>
+        <Text style={{ fontWeight: 'bold' }}>Ingredientes:</Text> {pizza.pizza?.ingredientes}
+      </Text>
+      <Text style={styles.texto}>
+        <Text style={{ fontWeight: 'bold' }}>Tamaño:</Text> {pizza.tamano || '-'}
+      </Text>
+      <Text style={styles.texto}>
+        <Text style={{ fontWeight: 'bold' }}>Ingredientes adicionales:</Text>{' '}
+        {pizza.ingredientes && pizza.ingredientes.length > 0
+          ? pizza.ingredientes.map(i => i.nombre).join(', ')
+          : 'Sin adicionales'}
+      </Text>
+      <Text style={styles.texto}>
+        <Text style={{ fontWeight: 'bold' }}>Subtotal:</Text> ${pizza.precioTotal?.toFixed(2) || '0.00'}
+      </Text>
+    </View>
+  ))
+) : (
+  <Text style={styles.texto}>No hay pizzas en este pedido.</Text>
+)}
+
+
+
 
       <View style={styles.pickerContainer}>
         <Picker
@@ -256,7 +259,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
   },
   picker: {
-    height: 50,
+    height: 65,
     width: '100%',
   },
   botonEliminar: {

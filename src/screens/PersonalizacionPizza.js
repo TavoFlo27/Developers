@@ -14,17 +14,18 @@ import { RadioButton, Checkbox, Button } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 
 const ingredientesDisponibles = [
-  { nombre: "Extra queso", precio: 10 },
-  { nombre: "Champiñones", precio: 12 },
+  { nombre: "Extra queso", precio: 16 },
+  { nombre: "Champiñones", precio: 23 },
   { nombre: "Tocino", precio: 15 },
-  { nombre: "Jalapeños", precio: 8 },
+  { nombre: "Jalapeños", precio: 11 },
   { nombre: "Pimientos", precio: 10 },
 ];
 
 const preciosTamano = {
-  Pequeña: 0,
-  Mediana: 20,
-  Grande: 40,
+  Chica:0,
+  Mediana: 10,
+  Grande: 25,
+  Familiar: 40,
 };
 
 export default function PersonalizacionPizza({ route, navigation }) {
@@ -34,7 +35,7 @@ export default function PersonalizacionPizza({ route, navigation }) {
     ingredientes: ingredientesInicial = [],
     index = null,
     carrito = [],
-    usuario = null, // 🆕 Se recibe el usuario desde route.params
+    usuario = null, 
   } = route.params || {};
 
   const [tamano, setTamano] = useState(tamanoInicial);
@@ -80,14 +81,14 @@ export default function PersonalizacionPizza({ route, navigation }) {
       tamano,
       ingredientes,
       precioTotal,
-      usuario, // 🆕 Se incluye el usuario en la pizza personalizada
+      usuario, 
     };
 
     navigation.navigate("PizzaSeleccionada", {
       pizzaPersonalizada,
       index,
       carrito,
-      usuario, // 🆕 Se pasa también a la siguiente pantalla
+      usuario, 
     });
   };
 

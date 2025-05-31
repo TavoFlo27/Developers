@@ -10,48 +10,62 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 
 export default function InformacionPedido({ navigation, route }) {
-  const [estado, setEstado] = useState('Preparando');
-
+  const [estado, setEstado] = useState('');
   const datosUsuario = route?.params?.usuario || null;
   const pedidoId = route?.params?.pedidoId || null;
 
+  const estados = ['Preparando', 'En camino', 'Entregado'];
+
   useEffect(() => {
-    const timer1 = setTimeout(() => {
-      actualizarEstado('En camino');
-    }, 10 * 60 * 1000); // 10 minutos
+    let interval;
 
-    const timer2 = setTimeout(() => {
-      actualizarEstado('Entregado');
-    }, 20 * 60 * 1000); // 20 minutos
-
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-    };
-  }, []);
-
-  const actualizarEstado = async (nuevoEstado) => {
-    setEstado(nuevoEstado);
-    if (pedidoId) {
+    const verificarEstado = async () => {
+      if (!pedidoId) return;
       try {
         const pedidoRef = doc(db, 'pedidos', pedidoId);
-        await updateDoc(pedidoRef, { estado: nuevoEstado });
+        const pedidoSnap = await getDoc(pedidoRef);
+        if (pedidoSnap.exists()) {
+          const data = pedidoSnap.data();
+          if (data.estado !== estado) {
+            setEstado(data.estado);
+          }
+        }
       } catch (error) {
-        console.error('Error al actualizar estado del pedido:', error);
+        console.error('Error al verificar estado del pedido:', error);
       }
-    }
-  };
+    };
 
-  const getEstiloEstado = (actual) => ({
+    interval = setInterval(verificarEstado, 1000); // cada segundo
+
+    return () => clearInterval(interval);
+  }, [pedidoId, estado]);
+
+  const getEstiloEstado = (nombreEstado) => {
+  const indexActual = estados.indexOf(estado);
+  const indexBoton = estados.indexOf(nombreEstado);
+
+  let backgroundColor = '#f2f2f2'; // gris claro por defecto
+
+  if (estado === 'Entregado') {
+    backgroundColor = '#90ee90'; // todos en verde
+  } else if (indexBoton < indexActual) {
+    backgroundColor = '#90ee90'; // verde si ya pasó
+  } else if (indexBoton === indexActual) {
+    backgroundColor = 'orange'; // naranja si es el actual
+  }
+
+  return {
     ...styles.botonEstado,
-    backgroundColor: estado === actual ? '#90ee90' : '#f2f2f2',
+    backgroundColor,
     borderColor: '#000',
     borderWidth: 1,
-  });
+  };
+};
+
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -78,21 +92,11 @@ export default function InformacionPedido({ navigation, route }) {
 
         <Text style={styles.subtitulo}>ESTADO DEL PEDIDO</Text>
 
-        <View style={getEstiloEstado('Preparando')}>
-          <Text style={estado === 'Preparando' ? styles.estadoActivo : styles.estado}>
-            PREPARANDO...
-          </Text>
-        </View>
-        <View style={getEstiloEstado('En camino')}>
-          <Text style={estado === 'En camino' ? styles.estadoActivo : styles.estado}>
-            EN CAMINO...
-          </Text>
-        </View>
-        <View style={getEstiloEstado('Entregado')}>
-          <Text style={estado === 'Entregado' ? styles.estadoActivo : styles.estado}>
-            ENTREGADO...
-          </Text>
-        </View>
+        {estados.map((e) => (
+          <View key={e} style={getEstiloEstado(e)}>
+            <Text style={styles.estado}>{e.toUpperCase()}...</Text>
+          </View>
+        ))}
 
         <Text style={[styles.subtitulo, { marginTop: 40 }]}>INFORMACIÓN DEL USUARIO</Text>
 
@@ -171,10 +175,6 @@ const styles = StyleSheet.create({
   estado: {
     fontSize: 16,
     color: 'black',
-  },
-  estadoActivo: {
-    fontSize: 16,
-    color: 'green',
     fontWeight: 'bold',
   },
   datosUsuario: {

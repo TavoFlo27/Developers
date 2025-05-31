@@ -17,34 +17,43 @@ export default function InicioSesion({ navigation }) {
 
   const handleLogin = async () => {
     try {
-      // Acceso especial para el Cajero
-      if (usuario === "ADMINISTRADOR" && contrasena === "PASSWORD") {
-        Alert.alert("Acceso concedido", "Bienvenido, Cajero");
-        navigation.navigate("VistaCajero", {
-          usuario: {
-            nombre: "Administrador",
-            rol: "cajero",
-          },
-        });
+      const usuariosRef = collection(db, "usuarios");
+
+      // Buscar usuario con tipoUsuario: "Cliente"
+      const clienteQuery = query(
+        usuariosRef,
+        where("usuario", "==", usuario),
+        where("contrasena", "==", contrasena),
+        where("tipoUsuario", "==", "Cliente")
+      );
+      const clienteSnapshot = await getDocs(clienteQuery);
+
+      if (!clienteSnapshot.empty) {
+        const userData = clienteSnapshot.docs[0].data();
+        Alert.alert("¡Bienvenido!");
+        navigation.navigate("MenuPizzas", { usuario: userData });
         return;
       }
 
-      // Acceso para clientes registrados en Firebase
-      const usuariosRef = collection(db, "usuarios");
-      const q = query(
+      // Si no es cliente, buscar como admin
+      const adminQuery = query(
         usuariosRef,
         where("usuario", "==", usuario),
-        where("contrasena", "==", contrasena)
+        where("contrasena", "==", contrasena),
+        where("tipoUsuario", "==", "admin")
       );
-      const querySnapshot = await getDocs(q);
+      const adminSnapshot = await getDocs(adminQuery);
 
-      if (!querySnapshot.empty) {
-        const userData = querySnapshot.docs[0].data();
-        Alert.alert("¡Bienvenido!");
-        navigation.navigate("MenuPizzas", { usuario: userData });
-      } else {
-        Alert.alert("Error", "Usuario o contraseña incorrectos");
+      if (!adminSnapshot.empty) {
+        const userData = adminSnapshot.docs[0].data();
+        Alert.alert("Acceso concedido", "Bienvenido, Cajero");
+        navigation.navigate("VistaCajero", { usuario: userData });
+        return;
       }
+
+      // Si no se encontró ninguno
+      Alert.alert("Error", "Usuario o contraseña incorrectos");
+
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
       Alert.alert("Error", "Hubo un problema al verificar los datos");

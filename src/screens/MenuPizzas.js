@@ -51,7 +51,7 @@ export default function MenuPizzas({ route, navigation }) {
       usuario, 
       nuevaPizza: {
         pizza: item,
-        tamano: "Familiar",
+        tamano: "Chica",
         ingredientes: [],
         precioTotal: parseFloat(item.precio.replace("$", "")),
       },

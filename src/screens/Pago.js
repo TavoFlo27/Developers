@@ -48,7 +48,7 @@ export default function Pago({ route, navigation }) {
         metodoPago,
         precioTotal,
         fecha: serverTimestamp(),
-        estado: "pendiente",
+        estado: "Preparando",
       });
 
       setPedidoId(docRef.id);
@@ -71,6 +71,7 @@ export default function Pago({ route, navigation }) {
           ${carrito
             .map(
               (item, i) => `
+              <p><strong>Usuario:</strong>${item.usuario.usuario}</p>
               <p><strong>Pizza ${i + 1}:</strong> ${item.pizza.nombre}</p>
               <p><strong>Tamaño:</strong> ${item.tamano}</p>
               <p><strong>Ingredientes adicionales:</strong> ${
