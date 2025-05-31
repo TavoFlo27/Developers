@@ -17,12 +17,19 @@ export default function InicioSesion({ navigation }) {
 
   const handleLogin = async () => {
     try {
+      // Acceso especial para el Cajero
       if (usuario === "ADMINISTRADOR" && contrasena === "PASSWORD") {
         Alert.alert("Acceso concedido", "Bienvenido, Cajero");
-        navigation.navigate("MenuPizzas", { usuario: { nombre: "Administrador" } });
+        navigation.navigate("VistaCajero", {
+          usuario: {
+            nombre: "Administrador",
+            rol: "cajero",
+          },
+        });
         return;
       }
 
+      // Acceso para clientes registrados en Firebase
       const usuariosRef = collection(db, "usuarios");
       const q = query(
         usuariosRef,
@@ -61,6 +68,7 @@ export default function InicioSesion({ navigation }) {
         onChangeText={setUsuario}
         style={styles.input}
         theme={{ roundness: 30 }}
+        autoCapitalize="none"
       />
 
       <Text style={styles.label}>Contraseña</Text>
@@ -92,20 +100,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     justifyContent: "flex-start",
     alignItems: "center",
-    color: "black",
   },
   header: {
     alignItems: "center",
     justifyContent: "center",
-    padding: 0,
-    margin: 0,
+    marginBottom: 20,
   },
   logo: {
     width: 350,
     height: 200,
     resizeMode: "contain",
-    margin: 0,
-    padding: 0,
   },
   bienvenido: {
     fontSize: 40,
@@ -133,8 +137,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     paddingVertical: 8,
     alignSelf: "center",
-    fontFamily: "OpenSans",
-    color: "black",
   },
   textoRegistro: {
     marginTop: 50,

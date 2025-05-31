@@ -8,6 +8,8 @@ import PersonalizacionPizza from "../screens/PersonalizacionPizza";
 import PizzaSeleccionada from "../screens/PizzaSeleccionada";
 import Pago from "../screens/Pago";
 import InformacionPedido from "../screens/InformacionPedido";
+import VistaCajero from "../screens/VistaCajero"; // <-- Importa la nueva pantalla
+
 const Stack = createNativeStackNavigator();
 
 export default function StackNavigator() {
@@ -48,6 +50,11 @@ export default function StackNavigator() {
           name="InformacionPedido"
           component={InformacionPedido}
           options={{ title: "Seguimiento del Pedido" }}
+        />
+        <Stack.Screen
+          name="VistaCajero"
+          component={VistaCajero}
+          options={{ title: "Panel de Cajero" }}
         />
       </Stack.Navigator>
     </NavigationContainer>
