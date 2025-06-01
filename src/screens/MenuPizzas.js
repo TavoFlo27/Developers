@@ -9,6 +9,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import HeaderBar from "../navigation/Header.js";
 
 const pizzas = [
   {
@@ -42,13 +43,13 @@ const pizzas = [
 ];
 
 export default function MenuPizzas({ route, navigation }) {
-  const { usuario } = route.params; 
+  const { usuario } = route.params;
   const [carrito, setCarrito] = React.useState(route.params?.carrito || []);
 
   const seleccionarPizza = (item) => {
     navigation.navigate("PizzaSeleccionada", {
       carrito,
-      usuario, 
+      usuario,
       nuevaPizza: {
         pizza: item,
         tamano: "Chica",
@@ -60,26 +61,9 @@ export default function MenuPizzas({ route, navigation }) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <HeaderBar usuario={route?.params?.usuario || {}} carrito={route?.params?.carrito || []} />
       <View style={styles.container}>
-        <View style={styles.headerBar}>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("PizzaSeleccionada", { carrito, usuario })
-            }
-          >
-            <Icon name="menu" size={50} color="#000" />
-          </TouchableOpacity>
-
-          <Image
-            source={require("../assets/pizza_icon.png")}
-            style={styles.logoGrande}
-          />
-
-          <TouchableOpacity onPress={() => alert("Notificaciones")}>
-            <Icon name="bell" size={50} color="#000" />
-          </TouchableOpacity>
-        </View>
-
+        
         <Image
           source={require("../assets/pizzas_banner.png")}
           style={styles.banner}
@@ -112,20 +96,8 @@ export default function MenuPizzas({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  headerBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    height: 60,
-    backgroundColor: "#fff",
-    elevation: 4,
-  },
-  logoGrande: {
-    width: 150,
-    height: 150,
-    resizeMode: "contain",
+  container: {
+    flex: 1,
   },
   banner: {
     width: "100%",

@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { Button } from "react-native-paper";
-
+import HeaderBar from "../navigation/Header.js";
 export default function PizzaSeleccionada({ route, navigation }) {
   const { carrito = [], nuevaPizza, usuario } = route.params || {};
 
@@ -69,19 +69,7 @@ export default function PizzaSeleccionada({ route, navigation }) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <View style={styles.headerBar}>
-        <TouchableOpacity onPress={handleAgregarOtra}>
-          <Icon name="menu" size={50} color="#000" />
-        </TouchableOpacity>
-        <Image
-          source={require("../assets/pizza_icon.png")}
-          style={styles.logoGrande}
-        />
-        <TouchableOpacity onPress={() => alert("Notificaciones")}>
-          <Icon name="bell" size={50} color="#000" />
-        </TouchableOpacity>
-      </View>
-
+      <HeaderBar usuario={route?.params?.usuario || {}} carrito={route?.params?.carrito || []} />
       <View style={styles.seleccionadaBar}>
         <TouchableOpacity onPress={handleAgregarOtra}>
           <Icon name="cart-plus" size={30} color="#000" />

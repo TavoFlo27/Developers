@@ -1,87 +1,63 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
-  Image,
-  SafeAreaView,
-  StatusBar,
   ScrollView,
+  SafeAreaView,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
+import HeaderBar from "../navigation/Header.js";
 
-export default function InformacionPedido({ navigation, route }) {
+export default function InformacionPedido({ route }) {
+  const usuario = route?.params?.usuario || null;
+  const [pedido, setPedido] = useState(null);
   const [estado, setEstado] = useState('');
-  const datosUsuario = route?.params?.usuario || null;
-  const pedidoId = route?.params?.pedidoId || null;
-
   const estados = ['Preparando', 'En camino', 'Entregado'];
 
   useEffect(() => {
-    let interval;
-
-    const verificarEstado = async () => {
-      if (!pedidoId) return;
+    const obtenerUltimoPedido = async () => {
+      if (!usuario?.usuario) return;
       try {
-        const pedidoRef = doc(db, 'pedidos', pedidoId);
-        const pedidoSnap = await getDoc(pedidoRef);
-        if (pedidoSnap.exists()) {
-          const data = pedidoSnap.data();
-          if (data.estado !== estado) {
-            setEstado(data.estado);
-          }
+        const querySnapshot = await getDocs(collection(db, 'pedidos'));
+        const pedidosUsuario = querySnapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(p => p.usuario?.usuario === usuario.usuario)
+          .sort((a, b) => b.timestamp?.seconds - a.timestamp?.seconds); // más reciente
+
+        if (pedidosUsuario.length > 0) {
+          setPedido(pedidosUsuario[0]);
+          setEstado(pedidosUsuario[0].estado || '');
         }
       } catch (error) {
-        console.error('Error al verificar estado del pedido:', error);
+        console.error('Error al obtener pedido del usuario:', error);
       }
     };
 
-    interval = setInterval(verificarEstado, 1000); // cada segundo
-
-    return () => clearInterval(interval);
-  }, [pedidoId, estado]);
+    obtenerUltimoPedido();
+  }, [usuario]);
 
   const getEstiloEstado = (nombreEstado) => {
-  const indexActual = estados.indexOf(estado);
-  const indexBoton = estados.indexOf(nombreEstado);
+    const indexActual = estados.indexOf(estado);
+    const indexBoton = estados.indexOf(nombreEstado);
+    let backgroundColor = '#f2f2f2';
 
-  let backgroundColor = '#f2f2f2'; // gris claro por defecto
+    if (estado === 'Entregado') backgroundColor = '#90ee90';
+    else if (indexBoton < indexActual) backgroundColor = '#90ee90';
+    else if (indexBoton === indexActual) backgroundColor = 'orange';
 
-  if (estado === 'Entregado') {
-    backgroundColor = '#90ee90'; // todos en verde
-  } else if (indexBoton < indexActual) {
-    backgroundColor = '#90ee90'; // verde si ya pasó
-  } else if (indexBoton === indexActual) {
-    backgroundColor = 'orange'; // naranja si es el actual
-  }
-
-  return {
-    ...styles.botonEstado,
-    backgroundColor,
-    borderColor: '#000',
-    borderWidth: 1,
+    return {
+      ...styles.botonEstado,
+      backgroundColor,
+      borderColor: '#000',
+      borderWidth: 1,
+    };
   };
-};
-
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
-          <Ionicons name="menu" size={50} color="black" />
-        </TouchableOpacity>
-        <Image
-          source={require('../assets/pizza_icon.png')}
-          style={styles.logo}
-        />
-        <TouchableOpacity onPress={() => {}}>
-          <Ionicons name="notifications" size={50} color="black" />
-        </TouchableOpacity>
-      </View>
+      <HeaderBar usuario={usuario} carrito={route?.params?.carrito || []} />
 
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.titleRow}>
@@ -91,23 +67,47 @@ export default function InformacionPedido({ navigation, route }) {
         </View>
 
         <Text style={styles.subtitulo}>ESTADO DEL PEDIDO</Text>
-
         {estados.map((e) => (
           <View key={e} style={getEstiloEstado(e)}>
             <Text style={styles.estado}>{e.toUpperCase()}...</Text>
           </View>
         ))}
 
-        <Text style={[styles.subtitulo, { marginTop: 40 }]}>INFORMACIÓN DEL USUARIO</Text>
+        {pedido ? (
+          <>
+            <Text style={[styles.subtitulo, { marginTop: 30 }]}>DETALLE DEL PEDIDO</Text>
+            {pedido.carrito?.map((pizza, index) => (
+              <View key={index} style={styles.pizzaCard}>
+                <Text style={styles.texto}>
+                  <Text style={{ fontWeight: 'bold' }}>Pizza {index + 1}:</Text> {pizza.pizza?.nombre || 'Sin nombre'}
+                </Text>
+                <Text style={styles.texto}>
+                  <Text style={{ fontWeight: 'bold' }}>Ingredientes:</Text> {pizza.pizza?.ingredientes}
+                </Text>
+                <Text style={styles.texto}>
+                  <Text style={{ fontWeight: 'bold' }}>Tamaño:</Text> {pizza.tamano || '-'}
+                </Text>
+                <Text style={styles.texto}>
+                  <Text style={{ fontWeight: 'bold' }}>Ingredientes adicionales:</Text>{' '}
+                  {pizza.ingredientes?.length > 0
+                    ? pizza.ingredientes.map(i => i.nombre).join(', ')
+                    : 'Sin adicionales'}
+                </Text>
+                <Text style={styles.texto}>
+                  <Text style={{ fontWeight: 'bold' }}>Subtotal:</Text> ${pizza.precioTotal?.toFixed(2) || '0.00'}
+                </Text>
+              </View>
+            ))}
 
-        {datosUsuario ? (
-          <View style={styles.datosUsuario}>
-            <Text style={styles.datoTitulo}>NOMBRE:</Text><Text style={styles.datoValor}>{datosUsuario.nombre}</Text>
-            <Text style={styles.datoTitulo}>TELÉFONO:</Text><Text style={styles.datoValor}>{datosUsuario.telefono}</Text>
-            <Text style={styles.datoTitulo}>DOMICILIO:</Text><Text style={styles.datoValor}>{datosUsuario.domicilio}</Text>
-          </View>
+            <Text style={[styles.subtitulo, { marginTop: 30 }]}>INFORMACIÓN DEL USUARIO</Text>
+            <View style={styles.datosUsuario}>
+              <Text style={styles.datoTitulo}>NOMBRE:</Text><Text style={styles.datoValor}>{usuario.nombre}</Text>
+              <Text style={styles.datoTitulo}>TELÉFONO:</Text><Text style={styles.datoValor}>{usuario.telefono}</Text>
+              <Text style={styles.datoTitulo}>DOMICILIO:</Text><Text style={styles.datoValor}>{usuario.domicilio}</Text>
+            </View>
+          </>
         ) : (
-          <Text>Cargando información del usuario...</Text>
+          <Text style={{ fontSize: 16, marginTop: 20 }}>No hay pedidos recientes.</Text>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -115,20 +115,6 @@ export default function InformacionPedido({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    height: 60,
-    backgroundColor: '#fff',
-    elevation: 4,
-  },
-  logo: {
-    width: 150,
-    height: 150,
-    resizeMode: 'contain',
-  },
   container: {
     padding: 25,
     backgroundColor: '#fff',
@@ -176,6 +162,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'black',
     fontWeight: 'bold',
+  },
+  pizzaCard: {
+    backgroundColor: '#e3e3e3',
+    padding: 10,
+    borderRadius: 8,
+    marginVertical: 5,
+    width: '100%',
+  },
+  texto: {
+    fontSize: 16,
+    marginVertical: 2,
   },
   datosUsuario: {
     marginTop: 10,

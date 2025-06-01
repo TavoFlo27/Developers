@@ -15,7 +15,7 @@ import { Button, Provider as PaperProvider } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-
+import HeaderBar from "../navigation/Header.js";
 import { db } from "../firebaseConfig"; // <-- Importa Firestore
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
@@ -102,20 +102,7 @@ export default function Pago({ route, navigation }) {
   return (
     <PaperProvider>
       <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-        <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-        <View style={styles.topBar}>
-          <TouchableOpacity onPress={() => navigation.openDrawer()}>
-            <Ionicons name="menu" size={50} color="black" />
-          </TouchableOpacity>
-          <Image
-            source={require("../assets/pizza_icon.png")}
-            style={styles.logo}
-          />
-          <TouchableOpacity onPress={() => {}}>
-            <Ionicons name="notifications" size={50} color="black" />
-          </TouchableOpacity>
-        </View>
-
+        <HeaderBar usuario={route?.params?.usuario || {}} carrito={route?.params?.carrito || []} />
         <View style={styles.container}>
           <View style={styles.titleRow}>
             <View style={styles.shadowBackground}>

@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { RadioButton, Checkbox, Button } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
-
+import HeaderBar from "../navigation/Header.js";
 const ingredientesDisponibles = [
   { nombre: "Extra queso", precio: 16 },
   { nombre: "Champiñones", precio: 23 },
@@ -104,21 +104,7 @@ export default function PersonalizacionPizza({ route, navigation }) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
-          <Ionicons name="menu" size={50} color="black" />
-        </TouchableOpacity>
-        <Image
-          source={require("../assets/pizza_icon.png")}
-          style={styles.logo}
-        />
-        <TouchableOpacity onPress={() => {}}>
-          <Ionicons name="notifications" size={50} color="black" />
-        </TouchableOpacity>
-      </View>
-
+      <HeaderBar usuario={route?.params?.usuario || {}} carrito={route?.params?.carrito || []} />
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.titulo}>PERSONALIZAR PIZZA</Text>
 
